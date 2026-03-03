@@ -31,31 +31,31 @@
 #### 基本工具
 - **布尔不等式**：设 $E_{1}, \dots, E_{p}$ 为 $p$ 个事件（它们之间可以任意相关），则
 	$$
-	\Pr[E_{1} \vee \dots \vee E_{p}] \leq \Pr[E_{1}] + \dots + \Pr[E_{p}]
+	\Pr(E_{1} \vee \dots \vee E_{p}) \leq \Pr(E_{1}) + \dots + \Pr(E_{p})
 	$$
-	- 设 $E_{1}, \dots, E_{p}$ 为 $p$ 个事件。如果 $p = \mathrm{poly}_{0}(\lambda)$ 且 $\Pr[E_{i}] = \mathrm{negl}_{i}(\lambda)$，则
+	- 设 $E_{1}, \dots, E_{p}$ 为 $p$ 个事件。如果 $p = \mathrm{poly}_{0}(\lambda)$ 且 $\Pr(E_{i}) = \mathrm{negl}_{i}(\lambda)$，则
 		$$
-		\Pr[E_{1} \vee \cdots \vee E_{p}] = \mathrm{negl}(\lambda).
+		\Pr(E_{1} \vee \cdots \vee E_{p}) = \mathrm{negl}(\lambda)
 		$$
 
 		即一个可忽略概率发生的事件重复做多项式次，至少发生一次的概率是可忽略的。
-	- 设 $F_{1}, \dots, F_{p}$ 为 $p$ 个事件。如果 $p = \mathrm{poly}_{0}(\lambda)$ 且 $\Pr[F_{i}] = \mathrm{overwhelm}_{i}(\lambda)$，则
+	- 设 $F_{1}, \dots, F_{p}$ 为 $p$ 个事件。如果 $p = \mathrm{poly}_{0}(\lambda)$ 且 $\Pr(F_{i}) = \mathrm{overwhelm}_{i}(\lambda)$，则
 		$$
-		\Pr[F_{1} \wedge \dots \wedge F_{p}] = \mathrm{overwhelm}(\lambda).
+		\Pr(F_{1} \wedge \dots \wedge F_{p}) = \mathrm{overwhelm}(\lambda)
 		$$
 
 		即一个压倒性概率发生的事件重复做多项式次，每次都发生的概率是压倒性的。
 - **全概率公式**：若事件 $A_{1}, A_{2}, \dots, A_{n}$ 构成一个完备事件组，即它们两两互不相容其和为全集，且都有正概率，则对任意一个事件 $B$，有如下公式成立，称为全概率公式：
 	$$
-	\Pr[B] = \Pr[B \wedge A_{1}] + \Pr[B \wedge A_{2}] + \cdots + \Pr[B \wedge A_{n}] = \Pr[B|A_{1}] \Pr[A_{1}] + \Pr[B|A_{2}] \Pr[A_{2}] + \cdots + \Pr[B|A_{n}] \Pr[A_{n}].
+	\Pr(B) = \Pr(B \wedge A_{1}) + \Pr(B \wedge A_{2}) + \cdots + \Pr(B \wedge A_{n}) = \Pr(B|A_{1}) \Pr(A_{1}) + \Pr(B|A_{2}) \Pr(A_{2}) + \cdots + \Pr(B|A_{n}) \Pr(A_{n})
 	$$
 	- 特别地，对于任意两随机事件 $A$ 和 $B$，有如下成立：
 		$$
-		\Pr[B] = \Pr[B|A] \Pr[A] + \Pr[B|\neg A] \Pr[\neg A],
+		\Pr(B) = \Pr(B|A) \Pr(A) + \Pr(B|\neg A) \Pr(\neg A)
 		$$
 - **贝叶斯公式**：设 $A$、$B$ 为两个事件，则
 	$$
-	\Pr[A \wedge B] = \Pr[A|B] \Pr[B].
+	\Pr(A \wedge B) = \Pr(A|B) \Pr(B)
 	$$
 
 #### 可证明安全性的定义
@@ -78,10 +78,18 @@
 	\mathrm{Dec}(SK, C) = M
 	$$
 
-
 #### 公钥加密算法的 SKH/PH/PFbH-PA 安全性
-- **被动攻击**（Passive Attacks, PA）安全模型：挑战者 $(PK, SK) \leftarrow \mathrm{Gen}$，$C \leftarrow \mathrm{Enc}(PK, M)$，敌手输入 $PK$ 和 $C$，输出 $\mathrm{output}$。
-    ![](image/image.png)
+- **被动攻击**（Passive Attacks, PA）安全模型：
+    ```mermaid
+    sequenceDiagram
+    participant 挑战者
+    participant 敌手
+
+    note left of 挑战者: (PK, SK) ← Gen
+    note left of 挑战者: C ← Enc(PK, M)
+    挑战者->>敌手: (PK, C)
+    敌手->>挑战者: output
+    ```
 - **敌手攻击能力**
     - 输入：公开信道中的 $PK, C$
     - 运行时间：概率多项式时间 PPT
@@ -97,8 +105,21 @@
     - 说明：SKH/PH/PFbH-PA 安全性定义**不能**保证加密算法的安全性。
 
 #### 公钥加密算法的 IND-CPA 安全性
-- **选择明文攻击**（Chosen-Plaintext Attacks, CPA）安全模型：挑战者 $(PK, SK) \leftarrow \mathrm{Gen}$，敌手选择两个明文 $M_{0}, M_{1}$，由挑战者随机选择 $b \leftarrow \{0, 1\}$，生成挑战密文 $C^{*} \leftarrow \mathrm{Enc}(PK, M_{b})$，敌手输入 $PK$ 和 $C^{*}$，输出 $\mathrm{output}$。
-    ![](image/image-1.png)
+- **选择明文攻击**（Chosen-Plaintext Attacks, CPA）安全模型：
+    ```mermaid
+    sequenceDiagram
+        participant 挑战者
+        participant 敌手
+
+        note left of 挑战者: (PK, SK) ← Gen
+        挑战者->>敌手: PK
+
+        敌手->>挑战者: (M₀, M₁)
+        note left of 挑战者: b ← {0, 1}<br/>C* ← Enc(PK, M_b)
+        挑战者->>敌手: C*
+
+        敌手->>挑战者: output
+    ```
 - **敌手攻击能力**：
     - 输入：公开信道中的 $PK$ 及挑战密文 $C^{*}$
 	- 运行时间：概率多项式时间 PPT
@@ -121,11 +142,11 @@
         $$
 - **IND-CPA 安全性的合理性**：公钥加密算法的 **IND-CPA 安全性** $\Rightarrow$ **SKH-PA/PH-PA/PFbH-PA 安全性**
     - **证明**：以 SKH-PA 安全性为例，采用反证法（归约）
-        - 假设结论错误：算法不是 SKH-PA 安全的，即存在一个概率多项式敌手 $A$，以不可忽略的概率在 PA 安全模型中攻破 SKH 安全目标，即
+        - **假设结论错误**：算法不是 SKH-PA 安全的，即存在一个概率多项式敌手 $A$，以不可忽略的概率在 PA 安全模型中攻破 SKH 安全目标，即
             $$
             \Pr[A(PK, C) = SK] = \mathrm{non\text{-}negl}(\lambda)
             $$
-        - 证明前提错误：构造一个概率多项式时间敌手 $B$，在 CPA 安全模型中攻破 IND 安全目标。
+        - **证明前提错误**：构造一个概率多项式时间敌手 $B$，在 CPA 安全模型中攻破 IND 安全目标。
             - $B$ 的输入：公开信道中的 $PK$ 及挑战密文 $C^{*}$
             - 调用子敌手：$B$ 将 $(PK, C^{*})$ 交给 A，模拟 SKH-PA 实验，A 输出一个候选私钥 $SK'$。
             - 验证并决策：$B$ 尝试使用 $SK'$ 解密 $C^{*}$，得到 $M' = \mathrm{Dec}(SK', C^{*})$
@@ -144,8 +165,26 @@
     - **结论**：IND-CPA 是公钥加密算法的基本安全性要求。
 
 #### 公钥加密算法的 IND-mCPA 安全性
-- **多挑战-选择明文攻击**（multiple-challenge Chosen-Plaintext Attacks, mCPA）安全模型：挑战者 $(PK, SK) \leftarrow \mathrm{Gen}$，敌手选择多项式个明文对 $(M_{0}^{(j)}, M_{1}^{(j)})$，由挑战者随机选择 $b \leftarrow \{0, 1\}$，生成多项式个挑战密文 $C^{*(j)} \leftarrow \mathrm{Enc}(PK, M_{b}^{(j)})$，敌手输入 $PK$ 和 $C^{*(1)}, \dots, C^{*(Q)}$，输出 $\mathrm{output}$。
-    ![](image/image-2.png)
+- **多挑战-选择明文攻击**（multiple-challenge Chosen-Plaintext Attacks, mCPA）
+    ```mermaid
+    sequenceDiagram
+    participant 挑战者
+    participant 敌手
+
+    note left of 挑战者: (PK, SK) ← Gen
+    note left of 挑战者: b ← {0, 1}
+    挑战者->>敌手: PK
+
+    note right of 敌手: 可进行多项式 Q 次挑战，j ∈ {1, ..., Q}
+    loop 第 j 次明文攻击
+        敌手->>挑战者: (M₀⁽ʲ⁾, M₁⁽ʲ⁾)
+        note left of 挑战者: C⁽ʲ⁾* ← Enc(PK, M_b⁽ʲ⁾)
+        挑战者->>敌手: C⁽ʲ⁾*
+    end
+
+    %% 最终输出
+    敌手->>挑战者: output
+    ```
 - **敌手的攻击能力**
 	- 输入：公开信道中的 $PK$ 及**多项式**个挑战密文 $C^{*(1)}, \dots, C^{*(Q)}$
 	- 运行时间：概率多项式时间 PPT
@@ -164,34 +203,37 @@
     \end{aligned}
     $$
 - **IND-CPA 与 IND-mCPA 的等价性**：公钥加密算法的 **IND-CPA 安全性** $\Leftrightarrow$ **IND-mCPA 安全性**
-    - **证明**：混合论证（Hybrid Arguments）或三角不等式
+    - **必要性易证**（$\Leftarrow$）：IND-CPA 是 IND-mCPA $Q=1$ 的特殊情况
+    - **充分性证明**（$\Rightarrow$）：采用混合论证（Hybrid Arguments）与三角不等式，核心思路是在全加密 $M_0^{(j)}$ 和全加密 $M_1^{(j)}$ 两个极端场景之间，插入一系列混合场景（Hybrid），证明相邻混合场景的不可区分性，最终推导出两个极端场景的不可区分性。
+        1. **定义两个极端游戏**（Game）：设敌手发起 $Q=\mathrm{poly}(\lambda)$ 次挑战，定义两个基础游戏：
+            - **Game 0** ($b=0$)：对所有 $j=1,\ldots,Q$，加密 $M_{0}^{(j)}$，即 $C^{*(j)} \leftarrow \mathrm{Enc}(PK, M_{0}^{(j)})$
+            - **Game 1** ($b=1$)：对所有 $j=1,\ldots,Q$，加密 $M_{1}^{(j)}$，即 $C^{*(j)} \leftarrow \mathrm{Enc}(PK, M_{1}^{(j)})$
+        2. **定义混合游戏**（Hybrid Game）：在 Game 0 和 Game 1 之间插入 $Q+1$ 个混合游戏 $\mathrm{Hybrid}_{i}$，其中 $i=0,\ldots,Q$，$\mathrm{Hybrid}_{i}$ 定义为对前 $i$ 个挑战加密 $M_{1}^{(j)}$，对后 $Q-i$ 个挑战加密 $M_{0}^{(j)}$，即
+            $$
+            \mathrm{Hybrid}_{i} : C^{*(j)} \leftarrow \begin{cases} \mathrm{Enc}(PK, M_{1}^{(j)}) & j \leq i \\ \mathrm{Enc}(PK, M_{0}^{(j)}) & j > i \end{cases}
+            $$
+        3. **分析混合游戏**：易知 Game 0 等价于 $\mathrm{Hybrid}_{0}$，Game 1 等价于 $\mathrm{Hybrid}_{Q}$，由**引理**：若算法满足 IND-CPA 安全，则对 $\forall i \in \{1, \dots, Q\}$，有
+            $$
+            \left| \Pr(\mathrm{output} = 1 | \mathrm{Hybrid}_{i-1}) - \Pr(\mathrm{output} = 1 | \mathrm{Hybrid}_{i}) \right| = \mathrm{negl}(\lambda)
+            $$
+        4. 累加相邻场景的差距：由三角不等式，最终有
+            $$
+            \begin{aligned}& \left| \Pr(\mathrm{output} = 1 | b = 0) - \Pr(\mathrm{output} = 1 | b = 1) \right| \\
+            =&\left| \Pr(\mathrm{output} = 1 | \mathrm{Hybrid}_{0}) - \Pr(\mathrm{output} = 1 | \mathrm{Hybrid}_{Q}) \right| \\
+            =&\left| \sum_{i=1}^{Q} \Pr(\mathrm{output} = 1 | \mathrm{Hybrid}_{i-1}) - \Pr(\mathrm{output} = 1 | \mathrm{Hybrid}_{i}) \right| \\
+            \leq& \sum_{i=1}^{Q} \left| \Pr(\mathrm{output} = 1 | \mathrm{Hybrid}_{i-1}) - \Pr(\mathrm{output} = 1 | \mathrm{Hybrid}_{i}) \right| \\
+            =& Q(\lambda) \cdot \mathrm{negl}(\lambda)  \\
+            =& \mathrm{negl}(\lambda)
+            \end{aligned}
+            $$
 
-- **第一步（引入多项式个 Hybrids）**：在 Game 0 ($b=0$) 和 Game 1 ($b=1$) 之间插入 $Q+1 = \mathrm{poly}(\lambda)$ 个 Hybrids，记为 $\mathrm{Hybrid}_{0}, \mathrm{Hybrid}_{1}, \dots, \mathrm{Hybrid}_{Q}$
-- **第二步（衔接首尾 Game）**：说明 Game 0 ($b=0$) 与 $\mathrm{Hybrid}_{0}$ 一样、Game 1 ($b=1$) 与 $\mathrm{Hybrid}_{Q}$ 一样
-- **第三步（分析相邻的 Hybrids）**：证明 $\forall i \in \{1, \dots, Q\}$，
-$$
-\left| \Pr[\mathrm{output} = 1 | \mathrm{Hybrid}_{i-1}] - \Pr[\mathrm{output} = 1 | \mathrm{Hybrid}_{i}] \right| = \mathrm{negl}(\lambda)
-$$
-
-**引理**：IND-CPA $\Rightarrow$ $\forall i \in \{1, \dots, Q\}$，
-$$
-\left| \Pr[\mathrm{output} = 1 | \mathrm{Hybrid}_{i-1}] - \Pr[\mathrm{output} = 1 | \mathrm{Hybrid}_{i}] \right| = \mathrm{negl}(\lambda)
-$$
-
-**引理的证明**：采用反证法，即安全性归约 -- 由区分 $\mathrm{Hybrid}_{i-1}$ 与 $\mathrm{Hybrid}_{i}$ 的敌手 $A$ 来构造攻破 IND-CPA 安全性的敌手 $B$。
-
-> $\mathrm{Hybrid}_{i-1}$ 与 $\mathrm{Hybrid}_{i}$ 的差别只在于第 $i$ 个挑战密文，与 IND-CPA 刻画的安全性十分接近。
-
-最终有：
-$$
-\left| \Pr[\mathrm{output} = 1 | \mathrm{Hybrid}_{0}] - \Pr[\mathrm{output} = 1 | \mathrm{Hybrid}_{Q}] \right| \leq \sum_{i} \left| \Pr[\mathrm{output} = 1 | \mathrm{Hybrid}_{i-1}] - \Pr[\mathrm{output} = 1 | \mathrm{Hybrid}_{i}] \right| = Q(\lambda) \cdot \mathrm{negl}(\lambda) = \mathrm{negl}(\lambda).
-$$
-
----
-
-## 总结：可证明安全理论
-
-- **基本概念与基本工具**：$\mathrm{poly}$, $\mathrm{negl}$, $\mathrm{non\text{-}negl}$, $\mathrm{overwhelm}$, Boole’s inequality
-- **可证明安全理论**：攻击能力（安全模型）+ 安全目标 = 安全性定义
-- **公钥加密算法 (PKE)**：IND-CPA 是公钥加密算法的基本安全性要求
-- **安全性归约**：安全性定义 1 $\Rightarrow$ 安全性定义 2，困难问题 $\Rightarrow$ 安全性定义
+            即 Game 0 与 Game 1 的差距是可忽略的，算法满足 IND-mCPA 安全性。
+    - **引理证明**：采用反证法，由区分 $\mathrm{Hybrid}_{i-1}$ 与 $\mathrm{Hybrid}_{i}$ 的敌手 $A$ 来构造攻破 IND-CPA 安全性的敌手 $B$。
+        - $\mathrm{Hybrid}_{i-1}$ 与 $\mathrm{Hybrid}_{i}$ 的差别只在于第 $i$ 个挑战密文，与 IND-CPA 刻画的安全性十分接近。
+        - 构造针对 IND-CPA 安全性的敌手 $B$：
+            - $B$ 将 IND-CPA 实验中的 $PK$ 交给 $A$
+            - $B$ 接收 $A$ 的前 $i-1$ 对明文 $(M_{0}^{(j)}, M_{1}^{(j)})$，固定加密 $M_{1}^{(j)}$ 交给 $A$
+            - $B$ 接收 $A$ 的第 $i$ 对明文 $(M_{0}^{(i)}, M_{1}^{(i)})$，将其作为 IND-CPA 实验的挑战明文，接收挑战密文 $C^{*(i)}$ 交给 $A$
+            - $B$ 接收 $A$ 的后 $Q-i$ 对明文 $(M_{0}^{(j)}, M_{1}^{(j)})$，固定加密 $M_{0}^{(j)}$ 交给 $A$
+            - 则 $B$ 的输出 $\mathrm{output} = \begin{cases} 0 & \mathrm{output}_A=\mathrm{Hybrid}_{i-1} \\ 1 & \mathrm{output}_A=\mathrm{Hybrid}_{i} \end{cases}$
+        - 则 $B$ 能区分 IND-CPA 实验中的两个场景，从而攻破 IND-CPA 安全性，与前提矛盾，引理得证。
