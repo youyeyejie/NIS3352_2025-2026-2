@@ -127,12 +127,12 @@
 - **IND 安全目标**：**不可区分性**（Indistinguishability）——敌手无法区分密文 $C^{*}$ 加密的是 $M_{0}$ 还是 $M_{1}$（即如果 $\mathrm{output} = b$，则攻破该目标）
 - **公钥加密算法的 IND-CPA 安全性定义**：任意概率多项式时间敌手在 CPA 安全模型中攻破 IND 安全目标的**优势**（advantage）是可忽略的，也即
     $$
-    \left| \Pr(\mathrm{output} = b) - \frac{1}{2} \right| = \mathrm{negl}(\lambda)
+    \mathrm{Adv} = \left| \Pr(\mathrm{output} = b) - \frac{1}{2} \right| = \mathrm{negl}(\lambda)
     $$
     - **等价定义**：
         $$
         \begin{aligned}
-        \mathrm{negl}(\lambda) =
+        \mathrm{Adv} =
         &\left| \Pr(\mathrm{output} = b) - \frac{1}{2} \right| \\
         =& \left| \Pr(\mathrm{output} = 0 \mid b = 0) \cdot \Pr(b=0) + \Pr(\mathrm{output} = 1 \mid b = 1) \cdot \Pr(b=1) - \frac{1}{2} \right| \\
         =& \frac{1}{2} \left| \Pr(\mathrm{output} = 0 \mid b = 0) + \Pr(\mathrm{output} = 1 \mid b = 1) - 1 \right| \\
@@ -141,27 +141,27 @@
         \end{aligned}
         $$
 - **IND-CPA 安全性的合理性**：公钥加密算法的 **IND-CPA 安全性** $\Rightarrow$ **SKH-PA/PH-PA/PFbH-PA 安全性**
-    - **证明**：以 SKH-PA 安全性为例，采用反证法（归约）
-        - **假设结论错误**：算法不是 SKH-PA 安全的，即存在一个概率多项式敌手 $A$，以不可忽略的概率在 PA 安全模型中攻破 SKH 安全目标，即
+    - **证明**：以 SKH-PA 安全性为例，采用反证法（**安全性归约**）
+        - **假设结论错误**：算法不是 SKH-PA 安全的，即存在一个概率多项式敌手 $\mathcal{A}$，以不可忽略的概率在 PA 安全模型中攻破 SKH 安全目标，即
             $$
-            \Pr[A(PK, C) = SK] = \mathrm{non\text{-}negl}(\lambda)
+            \mathrm{Adv}_\mathcal{A} = \Pr[\mathcal{A}(PK, C) = SK] = \mathrm{non\text{-}negl}(\lambda)
             $$
-        - **证明前提错误**：构造一个概率多项式时间敌手 $B$，在 CPA 安全模型中攻破 IND 安全目标。
-            - $B$ 的输入：公开信道中的 $PK$ 及挑战密文 $C^{*}$
-            - 调用子敌手：$B$ 将 $(PK, C^{*})$ 交给 A，模拟 SKH-PA 实验，A 输出一个候选私钥 $SK'$。
-            - 验证并决策：$B$ 尝试使用 $SK'$ 解密 $C^{*}$，得到 $M' = \mathrm{Dec}(SK', C^{*})$
-            - $B$ 的输出：$\mathrm{output} = \begin{cases} 0 & M' = M_0 \\ 1 & M' = M_1 \\ \mathrm{random}\{0, 1\} & \text{otherwise} \end{cases}$
-            - $B$ 的优势：
+        - **证明前提错误**：构造一个概率多项式时间敌手 $\mathcal{B}$，在 CPA 安全模型中攻破 IND 安全目标。
+            - $\mathcal{B}$ 的输入：公开信道中的 $PK$ 及挑战密文 $C^{*}$
+            - 调用子敌手：$\mathcal{B}$ 将 $(PK, C^{*})$ 交给 $\mathcal{A}$，模拟 SKH-PA 实验，$\mathcal{A}$ 输出一个候选私钥 $SK'$
+            - 验证并决策：$\mathcal{B}$ 尝试使用 $SK'$ 解密 $C^{*}$，得到 $M' = \mathrm{Dec}(SK', C^{*})$
+            - $\mathcal{B}$ 的输出：$\mathrm{output} = \begin{cases} 0 & M' = M_0 \\ 1 & M' = M_1 \\ \mathrm{random}\{0, 1\} & \text{otherwise} \end{cases}$
+            - $\mathcal{B}$ 的优势：
                 $$
                 \begin{aligned}
-                &\left| \Pr(\mathrm{output} = b) - \frac{1}{2} \right| \\
+                \mathrm{Adv}_\mathcal{B} = &\left| \Pr(\mathrm{output} = b) - \frac{1}{2} \right| \\
                 =& \left| \Pr(\mathrm{output} = b \mid SK' = SK) \cdot \Pr(SK' = SK) + \Pr(\mathrm{output} = b \mid SK' \neq SK) \cdot \Pr(SK' \neq SK) - \frac{1}{2} \right| \\
                 =& \left| 1 \cdot \mathrm{non\text{-}negl}(\lambda) + \frac{1}{2} \cdot (1 - \mathrm{non\text{-}negl}(\lambda)) - \frac{1}{2} \right| \\
                 =& \frac{1}{2} \cdot \mathrm{non\text{-}negl}(\lambda) = \mathrm{non\text{-}negl}(\lambda)
                 \end{aligned}
                 $$
 
-                即 B 在 CPA 安全模型中攻破 IND 安全目标的优势是不可忽略的，算法不是 IND-CPA 安全的，与前提矛盾。
+                即 $\mathcal{B}$ 在 CPA 安全模型中攻破 IND 安全目标的优势是不可忽略的，算法不是 IND-CPA 安全的，与前提矛盾。
     - **结论**：IND-CPA 是公钥加密算法的基本安全性要求。
 
 #### 公钥加密算法的 IND-mCPA 安全性
@@ -192,12 +192,12 @@
 - **IND 安全目标**：敌手无法区分密文 $C^{*(j)}$ 加密的是 $M_{0}^{(j)}$ 还是 $M_{1}^{(j)}$（即如果 $\mathrm{output} = b$，则攻破该目标）
 - **公钥加密算法的 IND-mCPA 安全性定义**：任意概率多项式时间敌手在 mCPA 安全模型中攻破 IND 安全目标的优势是可忽略的，即
     $$
-    \left| \Pr(\mathrm{output} = b) - \frac{1}{2} \right| = \mathrm{negl}(\lambda)
+    \mathrm{Adv} = \left| \Pr(\mathrm{output} = b) - \frac{1}{2} \right| = \mathrm{negl}(\lambda)
     $$
     - **等价定义**：
     $$
     \begin{aligned}
-    \mathrm{negl}(\lambda) =
+    \mathrm{Adv} =
     &\frac{1}{2} \left| \Pr(\mathrm{output} = 1 \mid b = 0) - \Pr(\mathrm{output} = 1 \mid b = 1) \right| \\
     =& \frac{1}{2} \left| \Pr(\mathrm{output} = 0 \mid b = 0) - \Pr(\mathrm{output} = 0 \mid b = 1) \right|
     \end{aligned}
@@ -218,7 +218,8 @@
             $$
         4. 累加相邻场景的差距：由三角不等式，最终有
             $$
-            \begin{aligned}& \left| \Pr(\mathrm{output} = 1 \mid b = 0) - \Pr(\mathrm{output} = 1 \mid b = 1) \right| \\
+            \begin{aligned}
+            \mathrm{Adv} =& \left| \Pr(\mathrm{output} = 1 \mid b = 0) - \Pr(\mathrm{output} = 1 \mid b = 1) \right| \\
             =&\left| \Pr(\mathrm{output} = 1 \mid \mathrm{Hybrid}_{0}) - \Pr(\mathrm{output} = 1 \mid \mathrm{Hybrid}_{Q}) \right| \\
             =&\left| \sum_{i=1}^{Q} \Pr(\mathrm{output} = 1 \mid \mathrm{Hybrid}_{i-1}) - \Pr(\mathrm{output} = 1 \mid \mathrm{Hybrid}_{i}) \right| \\
             \leq& \sum_{i=1}^{Q} \left| \Pr(\mathrm{output} = 1 \mid \mathrm{Hybrid}_{i-1}) - \Pr(\mathrm{output} = 1 \mid \mathrm{Hybrid}_{i}) \right| \\
@@ -228,12 +229,47 @@
             $$
 
             即 Game 0 与 Game 1 的差距是可忽略的，算法满足 IND-mCPA 安全性。
-    - **引理证明**：采用反证法，由区分 $\mathrm{Hybrid}_{i-1}$ 与 $\mathrm{Hybrid}_{i}$ 的敌手 $A$ 来构造攻破 IND-CPA 安全性的敌手 $B$。
+    - **引理证明**：采用反证法，由区分 $\mathrm{Hybrid}_{i-1}$ 与 $\mathrm{Hybrid}_{i}$ 的敌手 $\mathcal{A}$ 来构造攻破 IND-CPA 安全性的敌手 $\mathcal{B}$。
         - $\mathrm{Hybrid}_{i-1}$ 与 $\mathrm{Hybrid}_{i}$ 的差别只在于第 $i$ 个挑战密文，与 IND-CPA 刻画的安全性十分接近。
-        - 构造针对 IND-CPA 安全性的敌手 $B$：
-            - $B$ 将 IND-CPA 实验中的 $PK$ 交给 $A$
-            - $B$ 接收 $A$ 的前 $i-1$ 对明文 $(M_{0}^{(j)}, M_{1}^{(j)})$，固定加密 $M_{1}^{(j)}$ 交给 $A$
-            - $B$ 接收 $A$ 的第 $i$ 对明文 $(M_{0}^{(i)}, M_{1}^{(i)})$，将其作为 IND-CPA 实验的挑战明文，接收挑战密文 $C^{*(i)}$ 交给 $A$
-            - $B$ 接收 $A$ 的后 $Q-i$ 对明文 $(M_{0}^{(j)}, M_{1}^{(j)})$，固定加密 $M_{0}^{(j)}$ 交给 $A$
-            - 则 $B$ 的输出 $\mathrm{output}_B = \begin{cases} 0 & \mathrm{output}_A=\mathrm{Hybrid}_{i-1} \\ 1 & \mathrm{output}_A=\mathrm{Hybrid}_{i} \end{cases}$
-        - 则 $B$ 能区分 IND-CPA 实验中的两个场景，从而攻破 IND-CPA 安全性，与前提矛盾，引理得证。
+        - 假设存在一个概率多项式时间敌手 $\mathcal{A}$，以不可忽略的概率区分 $\mathrm{Hybrid}_{i-1}$ 与 $\mathrm{Hybrid}_{i}$，即
+            $$
+            \mathrm{Adv}_\mathcal{A} = \left| \Pr(\mathrm{output} = 1 \mid \mathrm{Hybrid}_{i-1}) - \Pr(\mathrm{output} = 1 \mid \mathrm{Hybrid}_{i}) \right| = \mathrm{non\text{-}negl}(\lambda)
+            $$
+        - 构造针对 IND-CPA 安全性的敌手 $\mathcal{B}$：
+            - $\mathcal{B}$ 将 IND-CPA 实验中的 $PK$ 交给 $\mathcal{A}$
+                - $\mathcal{B}$ 接收 $\mathcal{A}$ 的前 $i-1$ 对明文 $(M_{0}^{(j)}, M_{1}^{(j)})$，修改为 $(M_{1}^{(j)}, M_{1}^{(j)})$ 进行 IND-CPA 实验，相当于固定加密 $M_{1}^{(j)}$，将密文交给 $\mathcal{A}$
+                - $\mathcal{B}$ 接收 $\mathcal{A}$ 的第 $i$ 对明文 $(M_{0}^{(i)}, M_{1}^{(i)})$，将其作为 IND-CPA 实验的挑战明文，接收挑战密文 $C^{*(i)}$ 交给 $\mathcal{A}$
+                - $\mathcal{B}$ 接收 $\mathcal{A}$ 的后 $Q-i$ 对明文 $(M_{0}^{(j)}, M_{1}^{(j)})$，同理，加密 $M_{0}^{(j)}$ 交给 $\mathcal{A}$
+            - 则 $\mathcal{B}$ 的输出 $\mathrm{output}_{\mathcal{B}} = \begin{cases} 0 & \mathrm{output}_{\mathcal{A}}=0 \\ 1 & \mathrm{output}_{\mathcal{A}}=1 \end{cases}$
+            - $\mathcal{B}$ 的优势：
+                $$
+                \begin{aligned}
+                \mathrm{Adv}_\mathcal{B} = &\left| \Pr(\mathrm{output}_{\mathcal{B}} = b) - \frac{1}{2} \right| \\
+                =& \frac{1}{2} \left| \Pr(\mathrm{output}_{\mathcal{B}} = 1 \mid b=0) - \Pr(\mathrm{output}_{\mathcal{B}} = 1 \mid b=1) \right| \\
+                =& \frac{1}{2} \left| \Pr(\mathrm{output}_{\mathcal{A}} = 1 \mid \mathrm{Hybrid}_{i-1}) - \Pr(\mathrm{output}_{\mathcal{A}} = 1 \mid \mathrm{Hybrid}_{i}) \right| \\
+                =& \frac{1}{2} \cdot \mathrm{non\text{-}negl}(\lambda) =\mathrm{non\text{-}negl}(\lambda)
+                \end{aligned}
+                $$
+        - 则 $\mathcal{B}$ 能以不可忽略的优势打破 IND-CPA 安全性，与假设矛盾，因此引理成立。
+<!-- 
+### ElGamal 加密算法
+#### 群的基本知识
+- 设 $(G,\cdot,1)$ 为有限交换群，其中 $1$ 为 $G$ 中关于运算 $\cdot$ 的单位元
+    - **生成元**（Generator）：$a \in G$，集合 $\langle a \rangle = \{a^{i} : i \in \mathbb{Z}\}$ 是 $G$ 的子群，称为循环子群（Cyclic Subgroup），称 $a$ 为循环群 $\langle a \rangle$ 的生成元。
+    - **阶**（Order）：元素 $a$ 的阶 $|a|$ 是满足 $a^{|a|} = 1$ 的最小正整数，记为 $\mathrm{ord}(a)$。则 $|\langle a \rangle| = \mathrm{ord}(a)$。
+    - **素数阶群**：如果 $G$ 的阶 $|G|$ 是素数，则 $G$ 中的任意非单位元都是生成元，且 $G$ 为循环群。
+    - 如果群 $G=\langle g \rangle$ 为循环群，则 $G$ 中元素的运算为 $\log|G|$ 的多项式时间。
+
+#### 底层困难问题
+- 离散对数问题（Discrete Logarithm, DLOG）：对于 $a\in G$ 和 $b \in \langle a \rangle$，求 $x \in \mathbb{Z}$ 使得 $a^{x} = b$ 的问题称为离散对数问题，记为 $\mathrm{DLOG}_{G,a}(b)$。
+    - DLOG 问题困难：对于任意概率多项式时间敌手 $\mathcal{A}$，$\Pr_{x \leftarrow \mathbb{Z}_{|G|}}[\mathcal{A}(a, a^{x}) = x] = \mathrm{negl}(\lambda)$。
+- 计算性 Diffie-Hellman 问题（Computational Diffie-Hellman, CDH）：
+    - 定理：CDH 问题困难 $\Rightarrow$ DLOG 问题困难
+- 判定性 Diffie-Hellman 问题（Decisional Diffie-Hellman, DDH）：
+    - 定理：DDH 问题困难 $\Rightarrow$ CDH 问题困难
+
+#### ElGamal 算法简介
+
+
+#### ElGamal 加密算法的 IND-CPA 安全性
+- 定理：DDH 问题困难 $\Leftrightarrow$ ElGamal 算法是 IND-CPA 安全的 -->
