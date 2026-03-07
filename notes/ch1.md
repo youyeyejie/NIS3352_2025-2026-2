@@ -18,9 +18,9 @@
 	$$
 	- 性质：$\forall c \in \mathbb{N}$，$\exists \lambda' \in \mathbb{N}$，使得对 $\forall \lambda \geq \lambda'$，有 $\mathrm{negl}(\lambda) \leq \lambda^{-c}$
 	- 例：$\mathrm{negl}(\lambda) = 2^{-\lambda}$，$2^{-\sqrt{\lambda}}$，$\lambda^{-\lambda} = 2^{-\lambda \log \lambda}$
-- **不可忽略概率**（Non-negligible probability）：$\mathrm{non\text{-}negl}(\lambda)$，即存在多项式 $\mathrm{poly}$，$\forall \lambda' \in \mathbb{N}$，$\exists \lambda \geq \lambda'$，有
+- **不可忽略概率**（Non-negligible probability）：$\text{non-negl}(\lambda)$，即存在多项式 $\mathrm{poly}$，$\forall \lambda' \in \mathbb{N}$，$\exists \lambda \geq \lambda'$，有
 	$$
-	\mathrm{non\text{-}negl}(\lambda) > 1/\mathrm{poly}(\lambda)
+	\text{non-negl}(\lambda) > 1/\mathrm{poly}(\lambda)
 	$$
 - **压倒性概率**（Overwhelming probability）：**在密码学中认为几乎一定发生的概率**
 	$$
@@ -144,20 +144,36 @@
     - **证明**：以 SKH-PA 安全性为例，采用反证法（**安全性归约**）
         - **假设结论错误**：算法不是 SKH-PA 安全的，即存在一个概率多项式敌手 $\mathcal{A}$，以不可忽略的概率在 PA 安全模型中攻破 SKH 安全目标，即
             $$
-            \mathrm{Adv}_\mathcal{A} = \Pr[\mathcal{A}(PK, C) = SK] = \mathrm{non\text{-}negl}(\lambda)
+            \mathrm{Adv}_\mathcal{A} = \Pr[\mathcal{A}(PK, C) = SK] = \text{non-negl}(\lambda)
             $$
         - **证明前提错误**：构造一个概率多项式时间敌手 $\mathcal{B}$，在 CPA 安全模型中攻破 IND 安全目标。
             - $\mathcal{B}$ 的输入：公开信道中的 $PK$ 及挑战密文 $C^{*}$
-            - 调用子敌手：$\mathcal{B}$ 将 $(PK, C^{*})$ 交给 $\mathcal{A}$，模拟 SKH-PA 实验，$\mathcal{A}$ 输出一个候选私钥 $SK'$
-            - 验证并决策：$\mathcal{B}$ 尝试使用 $SK'$ 解密 $C^{*}$，得到 $M' = \mathrm{Dec}(SK', C^{*})$
+            - 调用子敌手：$\mathcal{B}$ 将 $(PK, C^{*})$ 交给 $\mathcal{A}$，模拟 SKH-PA 实验，$\mathcal{A}$ 输出一个候选私钥 $SK'$。$\mathcal{B}$ 尝试使用 $SK'$ 解密 $C^{*}$，得到 $M' = \mathrm{Dec}(SK', C^{*})$
+                ```mermaid
+                sequenceDiagram
+                    participant 挑战者
+                    participant 敌手B
+                    participant 敌手A
+
+                    note left of 挑战者: (PK, SK) ← Gen
+                    挑战者->>敌手B: PK
+                    敌手B->>挑战者: (M₀, M₁)
+                    note left of 挑战者: b ← {0, 1}<br/>C* ← Enc(PK, M_b)
+                    挑战者->>敌手B: C*
+                    敌手B->>敌手A: (PK, C*)
+                    note right of 敌手A: SK' ← A(PK, C*)
+                    敌手A->>敌手B: SK'
+                    note right of 敌手B: M' ← Dec(SK', C*)
+                    敌手B->>挑战者: output
+                ```
             - $\mathcal{B}$ 的输出：$\mathrm{output} = \begin{cases} 0 & M' = M_0 \\ 1 & M' = M_1 \\ \mathrm{random}\{0, 1\} & \text{otherwise} \end{cases}$
             - $\mathcal{B}$ 的优势：
                 $$
                 \begin{aligned}
                 \mathrm{Adv}_\mathcal{B} = &\left| \Pr(\mathrm{output} = b) - \frac{1}{2} \right| \\
                 =& \left| \Pr(\mathrm{output} = b \mid SK' = SK) \cdot \Pr(SK' = SK) + \Pr(\mathrm{output} = b \mid SK' \neq SK) \cdot \Pr(SK' \neq SK) - \frac{1}{2} \right| \\
-                =& \left| 1 \cdot \mathrm{non\text{-}negl}(\lambda) + \frac{1}{2} \cdot (1 - \mathrm{non\text{-}negl}(\lambda)) - \frac{1}{2} \right| \\
-                =& \frac{1}{2} \cdot \mathrm{non\text{-}negl}(\lambda) = \mathrm{non\text{-}negl}(\lambda)
+                =& \left| 1 \cdot \text{non-negl}(\lambda) + \frac{1}{2} \cdot (1 - \text{non-negl}(\lambda)) - \frac{1}{2} \right| \\
+                =& \frac{1}{2} \cdot \text{non-negl}(\lambda) = \text{non-negl}(\lambda)
                 \end{aligned}
                 $$
 
@@ -233,7 +249,7 @@
         - $\mathrm{Hybrid}_{i-1}$ 与 $\mathrm{Hybrid}_{i}$ 的差别只在于第 $i$ 个挑战密文，与 IND-CPA 刻画的安全性十分接近。
         - 假设存在一个概率多项式时间敌手 $\mathcal{A}$，以不可忽略的概率区分 $\mathrm{Hybrid}_{i-1}$ 与 $\mathrm{Hybrid}_{i}$，即
             $$
-            \mathrm{Adv}_\mathcal{A} = \left| \Pr(\mathrm{output} = 1 \mid \mathrm{Hybrid}_{i-1}) - \Pr(\mathrm{output} = 1 \mid \mathrm{Hybrid}_{i}) \right| = \mathrm{non\text{-}negl}(\lambda)
+            \mathrm{Adv}_\mathcal{A} = \left| \Pr(\mathrm{output}_\mathcal{A} = 1 \mid \mathrm{Hybrid}_{i-1}) - \Pr(\mathrm{output}_\mathcal{A} = 1 \mid \mathrm{Hybrid}_{i}) \right| = \text{non-negl}(\lambda)
             $$
         - 构造针对 IND-CPA 安全性的敌手 $\mathcal{B}$：
             - $\mathcal{B}$ 将 IND-CPA 实验中的 $PK$ 交给 $\mathcal{A}$
@@ -247,29 +263,108 @@
                 \mathrm{Adv}_\mathcal{B} = &\left| \Pr(\mathrm{output}_{\mathcal{B}} = b) - \frac{1}{2} \right| \\
                 =& \frac{1}{2} \left| \Pr(\mathrm{output}_{\mathcal{B}} = 1 \mid b=0) - \Pr(\mathrm{output}_{\mathcal{B}} = 1 \mid b=1) \right| \\
                 =& \frac{1}{2} \left| \Pr(\mathrm{output}_{\mathcal{A}} = 1 \mid \mathrm{Hybrid}_{i-1}) - \Pr(\mathrm{output}_{\mathcal{A}} = 1 \mid \mathrm{Hybrid}_{i}) \right| \\
-                =& \frac{1}{2} \cdot \mathrm{non\text{-}negl}(\lambda) =\mathrm{non\text{-}negl}(\lambda)
+                =& \frac{1}{2} \cdot \text{non-negl}(\lambda) =\text{non-negl}(\lambda)
                 \end{aligned}
                 $$
         - 则 $\mathcal{B}$ 能以不可忽略的优势打破 IND-CPA 安全性，与假设矛盾，因此引理成立。
-<!-- 
+
 ### ElGamal 加密算法
 #### 群的基本知识
-- 设 $(G,\cdot,1)$ 为有限交换群，其中 $1$ 为 $G$ 中关于运算 $\cdot$ 的单位元
-    - **生成元**（Generator）：$a \in G$，集合 $\langle a \rangle = \{a^{i} : i \in \mathbb{Z}\}$ 是 $G$ 的子群，称为循环子群（Cyclic Subgroup），称 $a$ 为循环群 $\langle a \rangle$ 的生成元。
-    - **阶**（Order）：元素 $a$ 的阶 $|a|$ 是满足 $a^{|a|} = 1$ 的最小正整数，记为 $\mathrm{ord}(a)$。则 $|\langle a \rangle| = \mathrm{ord}(a)$。
-    - **素数阶群**：如果 $G$ 的阶 $|G|$ 是素数，则 $G$ 中的任意非单位元都是生成元，且 $G$ 为循环群。
+- 设 $(G,\cdot,1)$ 为**有限交换群**，其中 $1$ 为 $G$ 中关于运算 $\cdot$ 的单位元，则群 $G$ 满足以下性质：
+    - 有限性：$|G| < \infty$
+    - 封闭性：$\forall a, b \in G$，$a \cdot b \in G$
+    - 交换性：$\forall a, b \in G$，$a \cdot b = b \cdot a$
+    - 单位元：$\forall a \in G$，$a \cdot 1 = 1 \cdot a = a$
+    - 逆元：$\forall a \in G$，存在 $a^{-1} \in G$，使得 $a \cdot a^{-1} = a^{-1} \cdot a = 1$
+- **生成元**（Generator）：$a \in G$，集合 $\langle a \rangle = \{a^{i} : i \in \mathbb{Z}\}$ 是 $G$ 的子群，称为循环子群（Cyclic Subgroup），称 $a$ 为循环群 $\langle a \rangle$ 的生成元。
+    - 特别地，如果 $\langle g \rangle = G$，则称 $g$ 是 $G$ 的生成元，$G$ 是由 $g$ 生成的循环群。
+    - **群的阶**：$|\langle a \rangle| = \mathrm{ord}(a) = \min\{n \in \mathbb{N} : a^{n} = 1\}$，即 $a$ 的阶。
+        - 拉格朗日定理：$\mathrm{ord}(a) \mid |G|$
+    - **素数阶群**：如果 $G$ 的阶 $|G|$ 是素数，则 $G$ 中的任意非单位元都是生成元，且 $G$ 为循环群。 
     - 如果群 $G=\langle g \rangle$ 为循环群，则 $G$ 中元素的运算为 $\log|G|$ 的多项式时间。
+- **离散对数**（Discrete Logarithm, DLOG）：对于 $a \in G$ 和 $b = a^{x} \in \langle a \rangle$，则称 $x\in\{0,1,\dots,\mathrm{ord}(a)-1\}$ 为 $b$ 相对于 $a$ 的离散对数，记为 $\mathrm{DLOG}_{G,a}(b)$。
+    - DLOG 问题的困难性与群的运算有关。
+    - 公认 DLOG 计算困难的群：
+        - **有限域的子群**：$G$ 为模 $n$ 乘法群 $(\mathbb{Z}_n^*, \cdot)$ 的 $p$ 阶循环子群，其中 $n = 2p + 1$，且 $n$ 和 $p$ 均为素数。
+            - 有限域上的离散对数问题（FFDLP）在数域筛法 NFS 下的求解复杂度为 $O\left(2^{\log^{\frac{1}{3}} p \cdot \log \log^{\frac{2}{3}} p}\right)$，为亚指数级别。
+        - **椭圆曲线群**：$G=(E(\mathbb{Z}_p), +)$，其中 $E(\mathbb{Z}_p)$ 是定义在有限域 $\mathbb{Z}_p$ 上的椭圆曲线 $E$ 的点集，运算为点加法。
+            - 椭圆曲线上的离散对数问题（ECDLP）在 Pollard's rho 算法下的求解复杂度为 $O(\sqrt{p})=O(2^{\frac{1}{2} \log p})$，为指数级别。
 
 #### 底层困难问题
-- 离散对数问题（Discrete Logarithm, DLOG）：对于 $a\in G$ 和 $b \in \langle a \rangle$，求 $x \in \mathbb{Z}$ 使得 $a^{x} = b$ 的问题称为离散对数问题，记为 $\mathrm{DLOG}_{G,a}(b)$。
-    - DLOG 问题困难：对于任意概率多项式时间敌手 $\mathcal{A}$，$\Pr_{x \leftarrow \mathbb{Z}_{|G|}}[\mathcal{A}(a, a^{x}) = x] = \mathrm{negl}(\lambda)$。
-- 计算性 Diffie-Hellman 问题（Computational Diffie-Hellman, CDH）：
-    - 定理：CDH 问题困难 $\Rightarrow$ DLOG 问题困难
-- 判定性 Diffie-Hellman 问题（Decisional Diffie-Hellman, DDH）：
-    - 定理：DDH 问题困难 $\Rightarrow$ CDH 问题困难
+- **离散对数问题**（Discrete Logarithm, DLOG）：$G$ 为循环群，其阶为素数 $p$、生成元为 $g$，并均匀选取 $h \leftarrow G$
+    - 输入：$(G, p, g, h)$
+    - 输出：$d = \mathrm{DLOG}_g\, h$
+- **计算性 Diffie-Hellman 问题**（Computational Diffie-Hellman, CDH）：$G$ 为循环群，其阶为素数 $p$、生成元为 $g$，均匀选取 $x, y \leftarrow \mathbb{Z}_p$
+    - 输入：$(G, p, g, g^x, g^y)$
+    - 输出：$g^{xy}$，也称为 $(g^x, g^y)$ 的 CDH 值
+- **判定性 Diffie-Hellman 问题**（Decisional Diffie-Hellman, DDH）：$G$ 为循环群，其阶为素数 $p$、生成元为 $g$，均匀选取 $x, y, z \leftarrow \mathbb{Z}_p, \beta \leftarrow \{0, 1\}$，并定义 $z_\beta = \begin{cases} g^{xy} & \beta=0 \\ g^{z} & \beta=1 \end{cases}$
+    - 输入：$(G, p, g, g^x, g^y, z_\beta)$
+    - 输出：$\beta$
+    - DDH 问题的困难性：任意 PPT 敌手在 DDH 安全模型中攻破 DDH 安全目标的优势是可忽略的，即
+        $$
+        \mathrm{Adv} = \left| \Pr(\mathrm{output} = \beta) - \frac{1}{2} \right| = \mathrm{negl}(\lambda)
+        $$
+- **定理**：**DDH 问题困难** $\Rightarrow$ **CDH 问题困难** $\Rightarrow$ **DLOG 问题困难**
 
 #### ElGamal 算法简介
-
+- **密钥生成算法** $(PK, SK) \leftarrow \mathrm{Gen}(1^\lambda)$：
+    1. 选择循环群 $G$，其阶为素数 $p$、生成元为 $g$
+    2. 均匀选取 $s \leftarrow \mathbb{Z}_p$，计算 $h := g^s$
+    3. 输出 $PK = (G, p, g, h)$，$SK = s$
+- **加密算法** $C \leftarrow \mathrm{Enc}(PK, M)$：消息空间为 $\mathcal{M} = G$
+    1. 均匀选取 $r \leftarrow \mathbb{Z}_p$
+    2. 计算 $C_1 := g^r$
+    3. 计算 $C_2 := h^r \cdot M$
+    4. 输出 $C := (C_1, C_2)$
+- **解密算法** $M' \leftarrow \mathrm{Dec}(SK, C = (C_1, C_2))$：
+    1. 计算并输出 $M' := C_2 \cdot (C_1^s)^{-1}$
 
 #### ElGamal 加密算法的 IND-CPA 安全性
-- 定理：DDH 问题困难 $\Leftrightarrow$ ElGamal 算法是 IND-CPA 安全的 -->
+- **定理**：**DDH 问题困难** $\Leftrightarrow$ **ElGamal 算法是 IND-CPA 安全的**
+- **证明** $\Rightarrow$：反证法（安全性归约）
+    - 假设结论错误：ElGamal 算法不是 IND-CPA 安全的，即存在一个概率多项式时间敌手 $\mathcal{A}$，以不可忽略的概率在 ElGamal 算法 CPA 安全模型中攻破 IND 安全目标，即
+        $$
+        \mathrm{Adv}_\mathcal{A} = \left| \Pr(\mathrm{output}_\mathcal{A} = b) - \frac{1}{2} \right| = \text{non-negl}(\lambda)
+        $$
+    - 证明前提错误：构造一个概率多项式时间敌手 $\mathcal{B}$，在 DDH 安全模型中攻破 DDH 安全目标。
+        - $\mathcal{B}$ 的输入：$(G, p, g, g^x, g^y, z_\beta)$
+        - 调用子敌手：$\mathcal{B}$ 将 $PK = (G, p, g, h=g^x)$ 交给 $\mathcal{A}$，$\mathcal{A}$ 输入两个消息 $M_0, M_1 \in G$，$\mathcal{B}$ 将挑战密文设置为 $C^{*} = (g^y, z_\beta \cdot M_b)$ 交给 $\mathcal{A}$，则
+            - $\beta = 0$ 时：$C^{*} = (g^y, M_b \cdot g^{xy})$，与 ElGamal 加密 $M_b$ 的密文分布相同，则
+                $$
+                \left|\Pr(\mathrm{output}_\mathcal{A}=b\mid \beta=0) - \frac{1}{2}\right| = \left| \Pr(\mathrm{output}_\mathcal{A} = b) - \frac{1}{2} \right| = \text{non-negl}(\lambda)
+                $$
+
+                也即 $\Pr(\mathrm{output}_\mathcal{A}=b \mid \beta=0) = \frac{1}{2} \pm \text{non-negl}(\lambda)$
+            - $\beta = 1$ 时：$C^{*} = (g^y, M_b \cdot g^{z})$，由于 $z \leftarrow \mathbb{Z}_p$ 均匀分布，$M_b \cdot g^{z}$ 也均匀分布在 $G$ 中，则密文不包含任何关于 $b$ 的信息，$\Pr(\mathrm{output}_\mathcal{A}=b \mid \beta=1) = \frac{1}{2}$
+        - $\mathcal{B}$ 的输出：$\mathrm{output}_\mathcal{B} = \begin{cases} 0 & \mathrm{output}_\mathcal{A} = b \\ 1 & \mathrm{output}_\mathcal{A} \neq b \end{cases}$
+        - $\mathcal{B}$ 的优势：
+            $$
+            \begin{aligned}
+            \mathrm{Adv}_\mathcal{B} =& \left| \Pr(\mathrm{output}_\mathcal{B} = \beta) - \frac{1}{2} \right| \\
+            =& \frac{1}{2} \left| \Pr(\mathrm{output}_\mathcal{B} = 0 \mid \beta = 0) - \Pr(\mathrm{output}_\mathcal{B} = 0 \mid \beta = 1) \right| \\
+            =& \frac{1}{2} \left| \Pr(\mathrm{output}_\mathcal{A} = b \mid \beta = 0) - \Pr(\mathrm{output}_\mathcal{A} = b \mid \beta = 1) \right| \\
+            =& \frac{1}{2} \left| \left( \frac{1}{2} \pm \text{non-negl}(\lambda) \right) - \frac{1}{2} \right| \\
+            =& \frac{1}{2} \cdot \text{non-negl}(\lambda) = \text{non-negl}(\lambda)
+            \end{aligned}
+            $$
+- **证明** $\Leftarrow$：反证法（安全性归约）
+    - 假设结论错误：DDH 问题不困难，即存在一个概率多项式时间敌手 $\mathcal{B}$，以不可忽略的概率在 DDH 安全模型中攻破 DDH 安全目标，即
+        $$
+        \mathrm{Adv}_\mathcal{B} = \left| \Pr(\mathrm{output}_\mathcal{B} = \beta) - \frac{1}{2} \right| = \text{non-negl}(\lambda)
+        $$
+    - 证明前提错误：构造一个概率多项式时间敌手 $\mathcal{A}$，在 ElGamal 算法 CPA 安全模型中攻破 IND 安全目标。
+        - $\mathcal{A}$ 的输入：$PK = (G, p, g, h=g^s)$ 和 $C^* = (C_1, C_2) = (g^r, M_b\cdot h^r)$
+        - 调用子敌手：$\mathcal{A}$ 将 $(G, p, g, g^s, g^r, C_2/M_0)$ 交给 $\mathcal{B}$，
+            - $b = 0$ 时：$C_2 = M_0 \cdot g^{sr}$，则 $C_2/M_0 = g^{sr}$，与 DDH 问题中取 $\beta = 0$ 等价
+            - $b = 1$ 时：$C_2 = M_1 \cdot g^{sr}$，则 $C_2/M_0 = M_1/M_0 \cdot g^{sr}$，由于 $M_0, M_1$ 均匀分布在 $G$ 中，则 $C_2/M_0$ 也均匀分布在 $G$ 中，与 DDH 问题中取 $\beta = 1$ 等价
+        - $\mathcal{A}$ 的输出：$\mathrm{output}_\mathcal{A} = \begin{cases} 0 & \mathrm{output}_\mathcal{B} = 0 \\ 1 & \mathrm{output}_\mathcal{B} = 1 \end{cases}$
+        - $\mathcal{A}$ 的优势：
+            $$
+            \begin{aligned}
+            \mathrm{Adv}_\mathcal{A} =& \left| \Pr(\mathrm{output}_\mathcal{A} = b) - \frac{1}{2} \right| \\
+            =& \frac{1}{2} \left| \Pr(\mathrm{output}_\mathcal{A} = 0 \mid b = 0) - \Pr(\mathrm{output}_\mathcal{A} = 0 \mid b = 1) \right| \\
+            =& \frac{1}{2} \left| \Pr(\mathrm{output}_\mathcal{B} = 0 \mid b = 0) - \Pr(\mathrm{output}_\mathcal{B} = 0 \mid b = 1) \right| \\
+            =& \frac{1}{2} \left| \Pr(\mathrm{output}_\mathcal{B} = 0 \mid \beta = 0) - \Pr(\mathrm{output}_\mathcal{B} = 0 \mid \beta = 1) \right| \\
+            =& \mathrm{Adv}_\mathcal{B} = \text{non-negl}(\lambda)
+            \end{aligned}
+            $$
