@@ -347,6 +347,7 @@
             =& \frac{1}{2} \cdot \text{non-negl}(\lambda) = \text{non-negl}(\lambda)
             \end{aligned}
             $$
+        - 则 $\mathcal{B}$ 能以不可忽略的优势打破 DDH 安全性，与假设矛盾，因此 ElGamal 算法满足 IND-CPA 安全性。
 - **证明** $\Leftarrow$：反证法（安全性归约）
     - 假设结论错误：DDH 问题不困难，即存在一个概率多项式时间敌手 $\mathcal{B}$，以不可忽略的概率在 DDH 安全模型中攻破 DDH 安全目标，即
         $$
@@ -368,3 +369,4 @@
             =& \mathrm{Adv}_\mathcal{B} = \text{non-negl}(\lambda)
             \end{aligned}
             $$
+        - 则 $\mathcal{A}$ 能以不可忽略的优势打破 ElGamal 算法的 IND-CPA 安全性，与假设矛盾，因此 DDH 问题困难。
