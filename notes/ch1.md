@@ -80,16 +80,7 @@
 
 #### 公钥加密算法的 SKH/PH/PFbH-PA 安全性
 - **被动攻击**（Passive Attacks, PA）安全模型：
-    ```mermaid
-    sequenceDiagram
-    participant 挑战者
-    participant 敌手
-
-    note left of 挑战者: (PK, SK) ← Gen
-    note left of 挑战者: C ← Enc(PK, M)
-    挑战者->>敌手: (PK, C)
-    敌手->>挑战者: output
-    ```
+    ![PA-security](image/image.png)
 - **敌手攻击能力**
     - 输入：公开信道中的 $PK, C$
     - 运行时间：概率多项式时间 PPT
@@ -106,20 +97,7 @@
 
 #### 公钥加密算法的 IND-CPA 安全性
 - **选择明文攻击**（Chosen-Plaintext Attacks, CPA）安全模型：
-    ```mermaid
-    sequenceDiagram
-        participant 挑战者
-        participant 敌手
-
-        note left of 挑战者: (PK, SK) ← Gen
-        挑战者->>敌手: PK
-
-        敌手->>挑战者: (M₀, M₁)
-        note left of 挑战者: b ← {0, 1}<br/>C* ← Enc(PK, M_b)
-        挑战者->>敌手: C*
-
-        敌手->>挑战者: output
-    ```
+    ![CPA-security](image/image-1.png)
 - **敌手攻击能力**：
     - 输入：公开信道中的 $PK$ 及挑战密文 $C^{*}$
 	- 运行时间：概率多项式时间 PPT
@@ -149,23 +127,7 @@
         - **证明前提错误**：构造一个概率多项式时间敌手 $\mathcal{B}$，在 CPA 安全模型中攻破 IND 安全目标。
             - $\mathcal{B}$ 的输入：公开信道中的 $PK$ 及挑战密文 $C^{*}$
             - 调用子敌手：$\mathcal{B}$ 将 $(PK, C^{*})$ 交给 $\mathcal{A}$，模拟 SKH-PA 实验，$\mathcal{A}$ 输出一个候选私钥 $SK'$。$\mathcal{B}$ 尝试使用 $SK'$ 解密 $C^{*}$，得到 $M' = \mathrm{Dec}(SK', C^{*})$
-                ```mermaid
-                sequenceDiagram
-                    participant 挑战者
-                    participant 敌手B
-                    participant 敌手A
-
-                    note left of 挑战者: (PK, SK) ← Gen
-                    挑战者->>敌手B: PK
-                    敌手B->>挑战者: (M₀, M₁)
-                    note left of 挑战者: b ← {0, 1}<br/>C* ← Enc(PK, M_b)
-                    挑战者->>敌手B: C*
-                    敌手B->>敌手A: (PK, C*)
-                    note right of 敌手A: SK' ← A(PK, C*)
-                    敌手A->>敌手B: SK'
-                    note right of 敌手B: M' ← Dec(SK', C*)
-                    敌手B->>挑战者: output
-                ```
+                ![](image/image-3.png)
             - $\mathcal{B}$ 的输出：$\mathrm{output} = \begin{cases} 0 & M' = M_0 \\ 1 & M' = M_1 \\ \mathrm{random}\{0, 1\} & \text{otherwise} \end{cases}$
             - $\mathcal{B}$ 的优势：
                 $$
@@ -181,26 +143,8 @@
     - **结论**：IND-CPA 是公钥加密算法的基本安全性要求。
 
 #### 公钥加密算法的 IND-mCPA 安全性
-- **多挑战-选择明文攻击**（multiple-challenge Chosen-Plaintext Attacks, mCPA）
-    ```mermaid
-    sequenceDiagram
-    participant 挑战者
-    participant 敌手
-
-    note left of 挑战者: (PK, SK) ← Gen
-    note left of 挑战者: b ← {0, 1}
-    挑战者->>敌手: PK
-
-    note right of 敌手: 可进行多项式 Q 次挑战，j ∈ {1, ..., Q}
-    loop 第 j 次明文攻击
-        敌手->>挑战者: (M₀⁽ʲ⁾, M₁⁽ʲ⁾)
-        note left of 挑战者: C⁽ʲ⁾* ← Enc(PK, M_b⁽ʲ⁾)
-        挑战者->>敌手: C⁽ʲ⁾*
-    end
-
-    %% 最终输出
-    敌手->>挑战者: output
-    ```
+- **多挑战-选择明文攻击**（multiple-challenge Chosen-Plaintext Attacks, mCPA）安全模型：
+    ![mCPA-security](image/image-2.png)
 - **敌手的攻击能力**
 	- 输入：公开信道中的 $PK$ 及**多项式**个挑战密文 $C^{*(1)}, \dots, C^{*(Q)}$
 	- 运行时间：概率多项式时间 PPT
@@ -268,6 +212,21 @@
                 $$
         - 则 $\mathcal{B}$ 能以不可忽略的优势打破 IND-CPA 安全性，与假设矛盾，因此引理成立。
 
+#### 公钥加密算法的 IND-CCA 安全性
+- **选择密文攻击**（Chosen-Ciphertext Attacks, CCA）安全模型：
+    ![CCA-security](image/image-4.png)
+- **敌手的攻击能力**：
+    - 输入：公开信道中的 $PK$ 及挑战密文 $C^{*}$
+    - 运行时间：概率多项式时间 PPT
+    - 攻击方式：
+        1. 选择明文攻击：敌手可以提供/决定/影响加密使用的明文
+        2. 选择密文攻击：敌手可以获得除 $C^{*}$ 外任意密文的解密结果
+- **IND 安全目标**：敌手无法区分密文 $C^{*}$ 加密的是 $M_{0}$ 还是 $M_{1}$（即如果 $\mathrm{output} = b$，则攻破该目标）
+- **公钥加密算法的 IND-CCA 安全性定义**：任意概率多项式时间敌手在 CCA 安全模型中攻破 IND 安全目标的优势是可忽略的，即
+    $$
+    \mathrm{Adv} = \left| \Pr(\mathrm{output} = b) - \frac{1}{2} \right| = \mathrm{negl}(\lambda)
+    $$
+
 ### ElGamal 加密算法
 #### 群的基本知识
 - 设 $(G,\cdot,1)$ 为**有限交换群**，其中 $1$ 为 $G$ 中关于运算 $\cdot$ 的单位元，则群 $G$ 满足以下性质：
@@ -306,7 +265,7 @@
         $$
 - **定理**：**DDH 问题困难** $\implies$ **CDH 问题困难** $\implies$ **DLOG 问题困难**
 
-#### ElGamal 算法简介
+#### ElGamal 加密算法简介
 - **密钥生成算法** $(PK, SK) \leftarrow \mathrm{Gen}(1^\lambda)$：
     1. 选择循环群 $G$，其阶为素数 $p$、生成元为 $g$
     2. 均匀选取 $s \leftarrow \mathbb{Z}_p$，计算 $h := g^s$
@@ -370,3 +329,10 @@
             \end{aligned}
             $$
         - 则 $\mathcal{A}$ 能以不可忽略的优势打破 ElGamal 算法的 IND-CPA 安全性，与假设矛盾，因此 DDH 问题困难。
+
+#### ElGamal 加密算法不满足 IND-CCA 安全性
+- **攻击思路**：利用 CCA 安全模型中敌手可以获得除密文之外的任何信息的能力，构造一个敌手 $\mathcal{A}$，在 CCA 安全模型中攻破 ElGamal 算法的 IND-CCA 安全性。
+    - $\mathcal{A}$ 的输入：$PK = (G, p, g, h=g^s)$ 和密文 $C^* = (C_1^*, C_2^*) = (g^r, M_b\cdot h^r)$
+    - $\mathcal{A}$ 对 $C^*$ 进行修改，构造一个新的密文 $C' = (C_1', C_2') = (C_1^*, C_2^* \cdot M')$ 进行解密查询，得到 $M'' = M_b \cdot M'$
+    - $\mathcal{A}$ 的输出：$\mathrm{output} = \begin{cases} 0 & M''/M' = M_0 \\ 1 & M''/M' = M_1 \end{cases}$
+    - 则 $\mathcal{A}$ 能以概率 1 打破 ElGamal 算法的 IND-CCA 安全性。
