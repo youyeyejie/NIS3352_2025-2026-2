@@ -20,8 +20,8 @@ $$
 证明公钥加密方案中 IND-CPA 安全与 IND-mCPA 安全是等价的。
 
 **证明**：
-- **必要性易证**（$\Leftarrow$）：IND-CPA 是 IND-mCPA $Q=1$ 的特殊情况
-- **充分性证明**（$\Rightarrow$）：
+- **必要性易证**（$\impliedby$）：IND-CPA 是 IND-mCPA $Q=1$ 的特殊情况
+- **充分性证明**（$\implies$）：
     1. 设敌手发起 $Q=\mathrm{poly}(\lambda)$ 次挑战，定义：
         - **Game 0** ($b=0$)：对所有 $j=1,\ldots,Q$，加密 $M_{0}^{(j)}$，即 $C^{*(j)} \leftarrow \mathrm{Enc}(PK, M_{0}^{(j)})$
         - **Game 1** ($b=1$)：对所有 $j=1,\ldots,Q$，加密 $M_{1}^{(j)}$，即 $C^{*(j)} \leftarrow \mathrm{Enc}(PK, M_{1}^{(j)})$
