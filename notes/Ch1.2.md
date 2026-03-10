@@ -85,20 +85,27 @@
     \right.\right) = \mathrm{negl}(\lambda)
     $$
 
-#### Fiat-Shamir 变换
-- 核心：为了使用身份证明协议进行签名，证明者（签名者）可将挑战 $e$ 用哈希函数 $H()$ 计算，自己独立地执行协议，无需与验证者交互。
+### Fiat-Shamir 变换
+- 核心：为了使用身份证明协议进行签名，证明者（签名者）可将挑战 $e$ 用哈希函数 $H(~)$ 计算，自己独立地执行协议，无需与验证者交互。
 - 交互流程：
     ![](image/image-8.png)
 - Fiat-Shamir 变换的安全性：**身份证明协议是 UI-PA 安全的** + **$H$ 为 RO** $\implies$ **通过 Fiat-Shamir 变换得到的签名算法是 EUF-CMA 安全的**
+    - 证明：参考后续 [Schnorr 签名算法的安全性证明](#schnorr-签名算法的-euf-cma-安全性)
 
 ### Random Oracle 模型（随机预言机）
-- Random Oracle 模型（随机预言机）是对哈希函数 $H: G \to \{0,1\}^{m}$ 的假设，用于安全性证明中，包含三个核心假设：
-    1. **Oracle-预言机假设**：敌手无法自己计算 $H$ 的值，只能通过查询“预言机” $H(·)$ 的方式获得 $H$ 的值：每一次查询，敌手向预言机 $H(·)$ 提交一个 $X$，$H(·)$ 返回输出 $H(X)$。（**黑盒**）
+- Random Oracle 模型（随机预言机）是对哈希函数 $H: G \to \{0,1\}^{m}$ 的假设，用于安全性证明中。
+- **核心假设**：
+    1. **Oracle-预言机假设**：敌手无法自己计算 $H$ 的值，只能通过查询“预言机” $H(·)$ 的方式获得 $H$ 的值：每一次查询，敌手向预言机 $H(·)$ 提交一个 $X$，$H(·)$ 返回输出 $H(X)$。
     2. **Random-随机性假设**：随机预言机 $H(·)$ 在每一个 $X$ 上的输出值 $H(X)$ 都是服从值域 $\{0,1\}^m$ 上均匀分布的，其随机性来源于预言机 $H(·)$ 内部。
     3. **Programmable-可编程性假设**：在安全性证明中，“随机预言机” $H(·)$ 由环境/挑战者向敌手提供。
+- **推论**：
+    1. Oracle 假设 + Random 假设：如果敌手没有向预言机 $H(·)$ 查询过某个输入 $X$，那么 $H(X)$ 的值对于敌手而言是完全均匀的。
+    2. Oracle 假设 + Programmable 假设：环境/挑战者知道敌手向预言机 $H(·)$ 查询过哪些输入 $X$。
+    3. Random 假设 + Programmable 假设：环境/挑战者针对敌手的每一次预言机 $H(·)$ 查询 $X$，返回值域 $\{0,1\}^m$ 上均匀分布的值作为 $H(X)$ 的值。
+- **说明**:
+    - RO 模型刻画了敌手只能**黑盒**的调用 Hash Function，敌手无法仅阅读 Hash Function 的代码而不调用 Hash Function 推断出 $H(X)$ 的值。
 
-
-### Schnorr身份证明协议与签名算法
+### Schnorr 身份证明协议与签名算法
 #### Schnorr 身份证明协议
 - 目的：Prover 向 Verifier 证明自己拥有 $PK$ 所对应的私钥 $SK$。
 - 交互流程：基于椭圆曲线上的离散对数问题
@@ -118,131 +125,113 @@
     1. 计算 $e:=H(R, M) \in \mathbb{Z}_{p}$
     2. 验证 $g^{z} \stackrel{?}{=} h^{e} \cdot R$，相等输出 $1$，否则输出 $0$
 
-## Schnorr签名算法的安全性引理
-**引理1 (Fiat-Shamir转换)**:
-$Schnorr身份证明协议是UI\text{-}PA安全的 + H为RO \Rightarrow Schnorr签名算法是EUF\text{-}CMA安全的$。
+#### 安全性分析
+##### Schnorr 签名算法的 EUF-CMA 安全性
+- **断言1**：如果在数字签名的 EUF-CMA 安全模型下，存在攻击者 $\mathcal{A}$ 以不可忽略的概率攻破 Schnorr 签名。设 $\mathcal{A}$ 的输出为 $(M^{*}, \sigma^{*}=(R^{*}, z^{*}))$，即
+    $$
+    Adv_{\mathcal{A}}=Pr\left[output _{\mathcal{A}}=(M^{*}, \sigma^{*}): h^{H(R^{*}, M^{*})} \cdot R^{*}=g^{z^{*}}\right]=\text{non-negl}(\lambda)
+    $$
 
-### 安全性归约
-- UI-PA安全模型的敌手$E_{id}$：可进行多次协议运行查询，输出$(R^*, z^*)$尝试假冒，优势为$Adv=Pr\left[g^{z^{*}}=h^{e^{*}} \cdot R^{*}\right]$
-- EUF-CMA安全模型的敌手$E_{Sign}$：可进行多次签名查询，输出$(M^*, \sigma ^*=(R^*,z^*))$尝试伪造，优势为$Adv=Pr\left[\begin{array}{l}(1) M^{*} \notin\left\{M_{i}\right\} \\ (2) Verify\left(PK, M^{*}, \sigma^{*}\right)=1\end{array}\right]$
-- 签名查询与协议查询的对应：$R_{i}= g^{r_i}$（$r_i \leftarrow \mathbb{Z}_p$），$e_{i}=H\left(R_{i}, M_{i}\right)$，$z_{i}=e_{i} \cdot s+r_{i}$，$\sigma_i= (R_i, z_i)$
+    则 $\mathcal{A}$ 以不可忽略的概率查询过 $(R^{*}, M^{*})$ 的 Hash 值。
+    - **证明**：反证法，假设 $\mathcal{A}$ 没有查询过 $(R^{*}, M^{*})$ 的 Hash 值，则在 $H$ 为 RO 假设下，$H(R^{*}, M^{*})$ 对 $\mathcal{A}$ 是 $\mathbb{Z}_{p}$ 中均匀随机的元素，因此 $h^{H(R^{*}, M^{*})}$ 对 $\mathcal{A}$ 是 $G$ 中均匀随机的元素。则 $\mathcal{A}$ 猜对 $z^{*} \in \mathbb{Z}_{p}$ 满足
+        $$
+        h^{H(R^{*}, M^{*})}=g^{z^{*}} \cdot (R^{*})^{-1}
+        $$
 
-## 回顾：Random Oracle模型
-随机预言机是对Hash Function $H: G \to \{0,1\}^{m}$的假设，用于安全性证明中，核心假设：
-1. **预言机(Oracle)假设**：
-敌手无法自己计算$H$的值，只能通过查询“预言机”$H(·)$的方式获得$H$的值：每一次查询，敌手向预言机$H(·)$提交一个$X$，$H(·)$返回输出$H(X)$。
+        的概率为 $\frac{1}{|G|}=\frac{1}{p}=negl(\lambda)$，与假设矛盾。
+- **引理1（Fiat-Shamir 转换）**：**Schnorr 身份证明协议是 UI-PA 安全的** + **$H$ 为 RO** $\implies$ **Schnorr 签名算法是 EUF-CMA 安全的**
+    - **思路**：将 $\mathcal{A}$ 作为 $\mathcal{B}$ 的子算法，为 $\mathcal{A}$ 提供合法的输入，以及返回合法的签名查询。利用 $\mathcal{A}$ 的输出结果帮助 $\mathcal{B}$ 在 UI-PA 中的输出正确的结果。
+    - **证明**：使用反证法（安全性规约）
+        ![](image/image-10.png)
+        - **假设结论错误**：Schnorr 签名算法不是 EUF-CMA 安全的，即存在 PPT 敌手 $\mathcal{A}$ 以不可忽略的概率攻破 Schnorr 签名算法的 EUF-CMA 安全性。
+            - 即 $\mathcal{A}$ 通过若干次签名查询后，可以输出一个未查询过的消息 $M^{*}$ 以及一个有效签名 $\sigma^{*}=(R^{*}, z^{*})$，以不可忽略的概率满足 $h^{H(R^{*}, M^{*})} \cdot R^{*}=g^{z^{*}}$。
+        - **证明前提错误**：构造一个 PPT 敌手 $\mathcal{B}$，在 UI-PA 安全模型下攻破 Schnorr 身份证明协议。
+            - **$\mathcal{B}$ 的策略**：
+                - $\mathcal{B}$ 将公钥 $PK$ 作为输入提供给 $\mathcal{A}$；$\mathcal{B}$ 随机选择 $j \in [1, Q(\lambda)]$ 赌 $\mathcal{A}$ 最终输出的消息 $M^{*}=M_j$
+                - 当 $\mathcal{A}$ 使用 $M_j$ 进行第 $j$ 次**签名查询**时：$\mathcal{B}$ 由于本身不具备私钥 $SK$，无法生成合法的签名，因此向挑战者 $E_{id}$ 发起查询，拿到一组合法记录 $(R_i, e_i, z_i)$，并将 $\sigma_i=(R_i, z_i)$ 返回给 $\mathcal{A}$，并自身记录 $H(R_i, M_i) = e_i$。
+                    - 此时若 $\mathcal{A}$ 要对签名查询进行验证，计算时需要 $H(R_i, M_i)$，只能向 $\mathcal{B}$ 查询哈希结果，必然能通过检验。
+                - 当 $\mathcal{A}$ 使用 $(R_k, M_k)$ 进行第 $k$ 次**哈希查询**时：
+                    - 若 $k=j$ 且 $M_j \notin \{M_i\}$，即 $\mathcal{A}$ 的第 $j$ 次哈希查询的消息 $M_j$ 没有在之前的签名查询中出现过，则 $\mathcal{B}$ 向 $E_{id}$ 输入 $R_j$ 并把返回的 $e_j$ 当作自己的哈希输出，并记录 $H(R_j, M_j) = e_j$
+                    - 若 $k=j$ 且 $M_j \in \{M_i\}$，则重新选择 $j \in [1, Q(\lambda)]$，直到满足 $M_j \notin \{M_i\}$。
+                    - 若 $k \in [1, Q(\lambda)] \setminus \{j\}$，$\mathcal{B}$ 查询是否有 $H(R_k, M_k)$ 的记录：
+                        - 若有则直接返回
+                        - 若没有则随机选择 $e \leftarrow \mathbb{Z}_p$ 返回并记录 $H(R_k, M_k) = e$
+                - 最终当 $\mathcal{A}$ 输出 $(M^{*}, \sigma^{*}=(R^{*}, z^{*}))$ 时，若 $M^{*}=M_j$，则 $\mathcal{B}$ 输出 $z^{*}$ 作为自己的输出，否则视为失败。
+            - **$\mathcal{B}$ 的优势**：记事件 $P_{1}$ 为 “$\mathcal{A}$ 向 $\mathcal{B}$ 查询过 $(R^{*}, M^{*})$ 的 Hash 值”，由前面的断言可知 $\Pr(P_{1})= \text{non-negl}(\lambda)$，则
+                $$
+                \begin{aligned}
+                Adv_{\mathcal{B}} & \geq \Pr(P_{1}) \cdot \Pr((R_j, M_j) = (R^{*}, M^{*}) \mid P_{1} ) \\
+                & \geq \Pr(P_{1}) \cdot \frac{1}{Q(\lambda)} \\
+                & = \text{non-negl}(\lambda)
+                \end{aligned}
+                $$
+            - 因此，$\mathcal{B}$ 以不可忽略的概率攻破 Schnorr 身份证明协议的 UI-PA 安全性，与前提矛盾。
 
-2. **随机性(Random)假设**：
-随机预言机$H(·)$在每一个$X$上的输出值$H(X)$都是服从值域$\{0,1\}^m$上均匀分布的，其随机性来源于预言机$H(·)$内部。
+##### Schnorr 身份证明协议的 UI-PA 安全性证明
+- **引理 2**：**DL 问题困难** $\implies$ **Schnorr 身份证明协议是 UI-PA 安全的**
+    - **证明**：安全性归约，由攻破 UI-PA 安全性的敌手 $\mathcal{A}$ 来构造解决 DL 问题的敌手 $\mathcal{B}$。
+        ![](image/image-11.png)
+        - **假设结论错误**：Schnorr 身份证明协议不是 UI-PA 安全的，即存在 PPT 敌手 $\mathcal{A}$ 以不可忽略的概率攻破 Schnorr 身份证明协议的 UI-PA 安全性。
+            - 即 $\mathcal{A}$ 通过若干次协议交互后，可以输出一个 $(R^{*}, e^{*}, z^{*})$，以不可忽略的概率满足 $h^{e^{*}} \cdot R^{*}=g^{z^{*}}$。
+        - **证明前提错误**：构造一个 PPT 敌手 $\mathcal{B}$ 解决 DL 问题。
+            - **$\mathcal{B}$ 的策略**：**Rewind 技术**
+                - $\mathcal{B}$ 将 DL 问题的输入 $PK=(G, p, g, h)$ 作为 Schnorr 身份证明协议的公钥提供给 $\mathcal{A}$。
+                - $\mathcal{B}$ 每次调用 $\mathcal{A}(PK)$ 时，$\mathcal{B}$ 都为 $\mathcal{A}$ 的每次查询提供正确的三元组 $(R, e, z)$，即满足 $R \cdot h^{e}=g^{z}$。
+                    - 具体地，$\mathcal{B}$ 随机选择 $z \leftarrow \mathbb{Z}_p$，随机选择 $e \leftarrow \mathbb{Z}_p$，计算 $R := g^{z} \cdot h^{-e} \in G$，并将 $(R, e, z)$ 返回给 $\mathcal{A}$。
 
-3. **可编程性(Programmable)假设**：
-在安全性证明中，“随机预言机”$H(·)$由环境/挑战者向敌手提供。
 
-### 进阶的安全性规约技术：Random Oracle模型推论
-$Oracle假设 + Random假设$：
-如果敌手没有向预言机$H(·)$查询过某个输入$X$，那么$H(X)$的值对于敌手而言是完全均匀的。
 
-$Oracle假设 + Programmable假设$：
-挑战者可控制预言机$H(·)$的输出，为敌手的查询返回指定值。
 
-$Random假设+ Programmable假设$：
-环境/挑战者针对敌手的每一次预言机$H(·)$查询$X$，返回值域$\{0,1\}^m$上均匀分布的值作为$H(X)$的值。
+按照你的要求，我将这部分内容严格按照你提供的格式，并结合 PPT 里的硬核技术细节（Rewind 和 优势计算公式）为你整理好了这份完美的笔记：
 
-**注**:
-- 敌手无法仅阅读Hash Function的代码而不调用Hash Function推断出$H(X)$的值。
-- 参考第5.5节:Katz J, Lindell Y. Introduction to modern cryptography, 2rd
+**引理 2**：**DL 问题困难** $\implies$ **Schnorr 身份证明协议是 UI-PA 安全的**
+- **证明**：安全性归约，由攻破 UI-PA 安全性的敌手 $\mathcal{A}$ 来构造解决 DL 问题的敌手 $\mathcal{B}$。
+    ![](image/image-11.png)
+    - **假设结论错误**：Schnorr 身份证明协议不是 UI-PA 安全的，即存在 PPT 敌手 $\mathcal{A}$ 以不可忽略的概率攻破 Schnorr 身份证明协议的 UI-PA 安全性，即
+        $$
+        Adv_{\mathcal{A}} = \Pr\left(
+        \mathrm{output} = (R^{*}, e^{*}, z^{*}) \left|
+        h^{e^{*}} \cdot R^{*}=g^{z^{*}}
+        \right.\right) = \text{non-negl}(\lambda)
+        $$
+    - **证明前提错误**：构造一个 PPT 敌手 $\mathcal{B}$ 解决 DL 问题。
+        - **$\mathcal{B}$ 的策略**：**Rewind 技术**
+            - $\mathcal{B}$ 将输入作为公钥 $PK=(G, p, g, h)$ 提供给 $\mathcal{A}$。对于 $\mathcal{A}$ 的每一次协议运行查询，$\mathcal{B}$ 随机选取 $e_i, z_i \leftarrow \mathbb{Z}_p$，计算 $R_i = g^{z_i}/h^{e_i}$，为 $\mathcal{A}$ 提供完美模拟的合法三元组 $(R_i, e_i, z_i)$。
+            - **第一次调用**：$\mathcal{B}$ 调用 $\mathcal{A}$ 直到 $\mathcal{A}$ 输出 $R^*$ 时，$\mathcal{B}$ 均匀随机选择 $e_1^* \leftarrow \mathbb{Z}_p$ 作为挑战发送给 $\mathcal{A}$，并收到 $\mathcal{A}$ 的应答输出 $z_1^*$。
+            - **第二次调用**：$\mathcal{B}$ 再次调用 $\mathcal{A}$，所有使用的随机数（包括 $\mathcal{A}$ 内部的随机数和 $\mathcal{B}$ 模拟查询的随机数）均与第一次调用**完全相同**。因此 $\mathcal{A}$ 会再次输出同样的 $R^*$。此时 $\mathcal{B}$ 使用**不同**的随机数均匀选择一个新的挑战 $e_2^* \leftarrow \mathbb{Z}_p$ 发送给 $\mathcal{A}$，并收到 $\mathcal{A}$ 的新应答输出 $z_2^*$。
+            - **解 DL**：如果两次调用 $\mathcal{A}$ 都成功伪造，则有：
+                $$
+                \begin{cases}
+                R^* \cdot h^{e_1^*} = g^{z_1^*} \\
+                R^* \cdot h^{e_2^*} = g^{z_2^*}
+                \end{cases}
+                $$
 
-## 引理1证明(分析)
-### 断言1
-如果在数字签名的EUF-CMA安全模型下，存在攻击者$A$以不可忽略的概率攻破Schnorr签名。设$A$的输出为$(M^{*}, \sigma^{*}=(R^{*}, z^{*}))$，即
-$$Adv_{A}=Pr\left[output _{A}=(M^{*}, \sigma^{*}): h^{H(R^{*}, M^{*})} \cdot R^{*}=g^{z^{*}}\right]=non-negl(\lambda)$$
-则$A$以不可忽略的概率查询过$(R^{*}, M^{*})$的Hash值。
+                若 $e_1^* \neq e_2^*$，两式相除消去 $R^*$ 可得 $h^{e_1^* - e_2^*} = g^{z_1^* - z_2^*}$。代入 $h = g^s$，即可解出 DL 问题的解：
+                    $$
+                    s \equiv (e_1^* - e_2^*)^{-1}(z_1^* - z_2^*) \pmod p
+                    $$
+        - **$\mathcal{B}$ 的优势**：
+            - 用变量 $\omega$ 代表 $\mathcal{B}$ 除了返回挑战 $e^*$ 之外所使用的所有随机数集合（即决定 $\mathcal{A}$ 输出 $R^*$ 的所有前置上下文）。
+            - 定义指示函数 $\mathrm{V}(\omega, e^*) = 1$ 当且仅当 $\mathcal{A}$ 在随机数 $\omega$ 和挑战 $e^*$ 下成功返回正确的 $z^*$，即 $R^* \cdot h^{e^*} = g^{z^*}$。
+            - 则 $\mathcal{B}$ 成功解决 DL 问题的概率（即两次都成功且挑战值不同的概率）为：
+                $$
+                \begin{aligned}
+                Adv_{\mathcal{B}} &= \Pr_{\omega, e_1^*, e_2^*}[\mathrm{V}(\omega, e_1^*) = 1 \land \mathrm{V}(\omega, e_2^*) = 1 \land e_1^* \neq e_2^*] \\
+                Adv_{\mathcal{B}} &= \Pr_{\omega, e_1^*, e_2^*}[\mathrm{V}(\omega, e_1^*) = 1 \land \mathrm{V}(\omega, e_2^*) = 1] - \Pr_{\omega, e_1^*, e_2^*}[\mathrm{V}(\omega, e_1^*) = 1 \land \mathrm{V}(\omega, e_2^*) = 1 \land e_1^* = e_2^*] \\
+                &\ge \Pr_{\omega, e_1^*, e_2^*}[\mathrm{V}(\omega, e_1^*) = 1 \land \mathrm{V}(\omega, e_2^*) = 1] - \Pr[e_1^* = e_2^*] \\
+                &\ge \Pr_{\omega, e_1^*, e_2^*}[\mathrm{V}(\omega, e_1^*) = 1 \land \mathrm{V}(\omega, e_2^*) = 1] - 1/p \\
+                &= \sum_{R\in\omega} \Pr[R] \cdot \Pr_{e_1^*, e_2^*}[\mathrm{V}(R, e_1^*) = 1 \land \mathrm{V}(R, e_2^*) = 1] - 1/p \\
+                &= \sum_{R\in\omega} \Pr[R] \cdot (\Pr_{e^*}[V(R, e^*) = 1])^2 - 1/p \\
+                &\ge \left( \sum_{R\in\omega} \Pr[R] \cdot \Pr_{e^*}[V(R, e^*) = 1] \right)^2 - 1/p \\
+                &= (\Pr_{\omega, e^*}[V(\omega, e^*) = 1])^2 - \frac{1}{p} \\
+                &= \mathrm{Adv}_{\mathcal{A}}^2 - \frac{1}{p} \\
+                &= \text{non-negl}(\lambda)
+                \end{aligned}
+                $$
+        - 因此，$\mathcal{B}$ 以不可忽略的概率成功解决 DL 问题，与 DL 问题困难的假设矛盾。得证！
 
-### 分析
-如果$A$没有查询过$(R^{*}, M^{*})$的Hash值，则在$H$为RO假设下，$H(R^{*}, M^{*})$对于$A$是$\mathbb{Z}_{p}$中均匀随机的元素，因此$h^{H(R^{*}, M^{*})}$对于$A$是$G$中均匀随机的元素。
-
-则$A$猜对$z^{*} \in \mathbb{Z}_{p}$满足
-$$h^{H\left(R^{*}, M^{*}\right)}=g^{z^{*}} \cdot\left(R^{*}\right)^{-1}$$
-的概率为$\frac{1}{|G|}=\frac{1}{p}=negl(\lambda)$。
-
-### B的策略
-假设在EUF-CMA安全模型下，存在攻破Schnorr签名算法的$A$，构造攻击Schnorr身份证明协议的$B$攻破其UI-PA安全性。
-
-**思路**:将$A$作为$B$的子算法，为$A$提供合法的输入，以及返回合法的签名查询，利用$A$的输出结果帮助$B$解决UI-PA中的挑战输出。
-
-#### B的策略(1/2)
-1. $B$从UI-PA挑战者处获得$PK$，并将$PK$发送给$A$
-2. $A$向$B$发起签名查询$M_i$，$B$模拟EUF-CMA挑战者，生成$R_{i}= g^{r_i}$（$r_i \leftarrow \mathbb{Z}_p$），随机选取$e_i \leftarrow \mathbb{Z}_p$，计算$z_i= e_i \cdot s+ r_i$，将$\sigma_i= (R_i, z_i)$返回给$A$
-3. $B$同时将$(R_i, e_i, z_i)$作为UI-PA的协议运行查询结果记录
-4. $A$输出伪造签名$(M^{*}, \sigma ^*=(R^{*},z^{*}))$，满足$h^{H\left(R^{*}, M^{*}\right)} \cdot R^{*}=g^{z^{*}}$，$B$将$R^*$作为UI-PA挑战的输入，尝试输出$z^*$完成假冒。
-
-#### B的策略(2/2)
-$H$为RO：$B$为$A$的$(R, M)$查询提供Hash值，设$A$向$B$查询的次数为$Q(\lambda)$次：
-1. 对$A$查询过的消息$\{M_{i}\}_{i \in I}$，以及返回的签名$\sigma_{i}=(R_{i}, z_{i})$，记录$H ( R _ { i } , M _ { i } ) = e _ { i }$；
-2. $B$随机选择$j \in[1, Q(\lambda)]$，如果$A$的第$j$次查询$(R_{j}, M_{j})$中$M_{j} \notin \{M_i\}$，则$B$将$A$的第$j$次查询$(R_{j}, M_{j})$中的$R_{j}$作为其向挑战者$Eid$的输入；并将$Eid$返回的$e_{j}$作为$(R_{j}, M_{j})$的Hash值返回给$A$，即$H(R_{j}, M_{j})=e_{j}$；否则$M_{j} \in \{M_i\}$，重新选择$j \in[1, Q(\lambda)]$；
-3. 对于$k \in[1, Q(\lambda)] \setminus \{j\}$，$B$查询记录，如果有$H(R_{k}, M_{k})$的记录，返回$H(R_{k}, M_{k})$；如果没有$H(R_{k}, M_{k})$的记录，则随机选择$e \leftarrow \mathbb{Z}_{p}$，作为$(R_{k}, M_{k})$的Hash值返回，并记录。
-
-### B的优势分析
-设$A$的输出为$(M^{*}, \sigma^{*}=(R^{*}, z^{*}))$，记事件$P_{1}$为 "$A$向$B$查询过$(R^{*}, M^{*})$的Hash值"。
-
-由前面的断言可知$Pr[P_{1}]= non-negl(\lambda)$，则
-$$\begin{array}{rl}& Adv_{B}\geq Pr[P_{1}]\cdot Pr\left[ \left( R_{j},M_{j}\right) =\left( R^{*},M^{*}\right) \mid P_{1}\right] \geq Pr[P_{1}]\cdot 1/Q(\lambda )\\ & =non-negl(\lambda )\end{array}$$
-
-**引理1得证**。
-
-## Schnorr 身份证明协议、签名算法的安全性
-**引理1**:
-$Schnorr身份证明协议是UI\text{-}PA安全的 + H为RO \Rightarrow Schnorr签名算法是EUF\text{-}CMA安全的$。
-
-**引理2**:
-$DL问题困难 \Rightarrow Schnorr身份证明协议是UI\text{-}PA安全的$。
-
-### DL问题(离散对数问题)
-$G$为循环群，其阶为素数$p$、生成元为$g$，并均匀选取$h \leftarrow G$：
-- 输入:$(G, p, g, h)$
-- 输出:$s = DLOG_g h$（即找到$s$使得$h=g^s$）
-
-### Schnorr 身份证明协议：UI-PA安全性证明
-**证明**:安全性归约（$\Rightarrow$）：由攻破UI-PA安全性的敌手$A$来构造解决DL问题的敌手$B$。
-
-若$V(R^{*}, e^{*}, z^{*})=1$，即$R^{*} \cdot h^{e^{*}}=g^{z^{*}}$，若敌手$A$能输出两组不同的有效三元组：
-$$\left(R^{*}, e_{1}^{*}, z_{1}^{*}\right) \Rightarrow R^{*} \cdot h^{e_{1}^{*}}=g^{z_{1}^{*}}$$
-$$\left(R^{*}, e_{2}^{*}, z_{2}^{*}\right) \Rightarrow R^{*} \cdot h^{e_{2}^{*}}=g^{z_{2}^{*}}$$
-
-两式相减得：
-$$g^{s\left(e_{1}^{*}-e_{2}^{*}\right)}=g^{z_{1}^{*}-z_{2}^{*}}$$
-
-由于$G$的阶为素数$p$，则：
-$$s\left(e_{1}^{*}-e_{2}^{*}\right) \equiv z_{1}^{*}-z_{2}^{*} \pmod p$$
-
-若$e_{1}^{*} \neq e_{2}^{*}$，则可计算出离散对数：
-$$s \equiv (e_{1}^{*}-e_{2}^{*})^{-1}(z_{1}^{*}-z_{2}^{*}) \pmod p$$
-
-### Rewind 技术
-设$A$为攻击Schnorr证明协议的PPT算法，构造解决DL问题的算法$B$，算法的输入为$(G, p, g, h)$：
-1. 令$PK=(G, p, g, h)$，调用$A(PK)$，并且为$A$的每次查询提供正确的三元组$(R,e,z)$；
-2. 当$A$输出$R^{*}$，均匀地选择$e_{1}^{*} \leftarrow \mathbb{Z}_{p}$，将$e_{1}^{*}$作为挑战发送给$A$并收到$A$的输出$z_{1}^{*}$；
-3. 再次调用$A(PK)$，除了返回挑战$e^{*}$时的随机数，其余使用和第一次调用$A$相同的随机数（包括$A$使用的随机数，以及$B$返回查询结果使用的随机数）。当$A$输出$R^*$，使用不同的随机数均匀地选择$e_{2}^{*} \leftarrow \mathbb{Z}_{p}$，将$e_{2}^{*}$作为挑战发送给$A$并收到$A$的输出$z_{2}^{*}$；
-4. 如果$R^{*} \cdot h^{e_{1}^{*}}=g^{z_{1}^{*}}$，$R^{*} \cdot h^{e_{2}^{*}}=g^{z_{2}^{*}}$并且$e_{1}^{*} ≠e_{2}^{*}$，输出$s \equiv(e_{1}^{*}-e_{2}^{*})^{-1}(z_{1}^{*}-z_{2}^{*}) \pmod p$。
-
-### B的优势分析
-用变量$\omega$代表$B$除了返回挑战$e^{*}$之外所使用的随机数（包括$A$使用的随机数，以及$B$返回查询结果使用的随机数）；
-
-定义$V(\omega, e^{*})=1$当且仅当$A$在$B$使用随机数$\omega$以及挑战$e^{*}$时，$A$成功返回正确的$z^{*}$，即$R^{*} \cdot h^{e^{*}}=g^{z^{*}}$。
-
-$$\begin{aligned} Adv_{B} & =\underset{\omega, e_{1}^{*}, e_{2}^{*}}{Pr}\left[V\left(\omega, e_{1}^{*}\right)=1 \bigwedge V\left(\omega, e_{2}^{*}\right)=1 \bigwedge e_{1}^{*} \neq e_{2}^{*}\right] \\ & \geq \underset{\omega, e_{1}^{*}, e_{2}^{*}}{Pr}\left[V\left(\omega, e_{1}^{*}\right)=1 \bigwedge V\left(\omega, e_{2}^{*}\right)=1\right]-1 / p \\ & =\sum Pr[\omega=R] \cdot Pr[\omega=R] \cdot \underset{e_{1}^{*}, e_{2}^{*}}{Pr}\left[V\left(R, e_{1}^{*}\right)=1 \bigwedge V\left(R, e_{2}^{*}\right)=1\right]-1 / p \\ & =\sum Pr[\omega=R] \cdot Pr[\omega=R] \cdot \underset{e^{*}}{Pr}\left[V\left(R, e^{*}\right)=1\right]^{2}-1 / p \\ & \geq\left(\sum Pr[\omega=R] \cdot Pr\left[V\left(R, e^{*}\right)=1\right]\right)^{2}-1 / p \\ & =Pr_{\omega, e^{*}}\left[V\left(\omega, e^{*}\right)=1\right]^{2}-\frac{1}{p} \\ & =Adv_{A}^{2}-\frac{1}{p}=non-negl(\lambda) . \end{aligned}$$
-
-## Schnorr签名算法的安全性定理
-**定理**:
-$DL问题困难 + H为RO \Rightarrow Schnorr签名算法是EUF\text{-}CMA安全的$。
-
-反之亦有：$Schnorr签名算法是EUF\text{-}CMA安全的 \Rightarrow DL问题困难$。
-
-## 总结：数字签名算法的安全性及其证明
-1. 数字签名算法简介(语义、正确性、安全性)
-2. 身份认证协议及Fiat-Shamir 变换
-3. 基于离散对数相关问题的签名算法:
-   ➢Schnorr身份证明的UI-PA安全
-   ➢Schnorr签名算法的EUF-CMA安全
-
-谢谢!
+##### 定理
+**定理**：**DL 问题困难** + **$H$ 为 RO**
+$\implies$ **Schnorr 身份证明协议是 UI-PA 安全的**
+$\implies$ **Schnorr 签名算法是 EUF-CMA 安全的**
