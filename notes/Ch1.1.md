@@ -71,9 +71,9 @@
 #### 公钥加密算法的语义及正确性要求
 - **语义**：一个公钥加密算法（public-key encryption, PKE）包含三个概率多项式时间（PPT）算法 $(\mathrm{Gen}, \mathrm{Enc}, \mathrm{Dec})$：
 	1. **密钥生成算法** $(PK, SK) \leftarrow \mathrm{Gen}(1^{\lambda})$：一般为概率性算法
-	2. **加密算法** $C \leftarrow \mathrm{Enc}(PK, M)$：$M \in \mathcal{M}$，其中 $\mathcal{M}$ 为消息空间
-	3. **解密算法** $M' \leftarrow \mathrm{Dec}(SK, C)$：一般为确定性算法，$M' \in \mathcal{M} \cup \{\bot\}$，其中 $\bot$ 代表解密失败
-- **正确性要求**：对于 $\forall (PK, SK) \leftarrow \mathrm{Gen}(1^{\lambda})$，$\forall M \in \mathcal{M}$，$\forall C \leftarrow \mathrm{Enc}(PK, M)$，一定有
+	2. **加密算法** $C \leftarrow \mathrm{Enc}(PK, M)$：$M \in \mathbb{M}$，其中 $\mathbb{M}$ 为消息空间
+	3. **解密算法** $M' \leftarrow \mathrm{Dec}(SK, C)$：一般为确定性算法，$M' \in \mathbb{M} \cup \{\bot\}$，其中 $\bot$ 代表解密失败
+- **正确性要求**：对于 $\forall (PK, SK) \leftarrow \mathrm{Gen}(1^{\lambda})$，$\forall M \in \mathbb{M}$，$\forall C \leftarrow \mathrm{Enc}(PK, M)$，一定有
 	$$
 	\mathrm{Dec}(SK, C) = M
 	$$
@@ -270,7 +270,7 @@
     1. 选择循环群 $G$，其阶为素数 $p$、生成元为 $g$
     2. 均匀选取 $s \leftarrow \mathbb{Z}_p$，计算 $h := g^s$
     3. 输出 $PK = (G, p, g, h)$，$SK = s$
-- **加密算法** $C \leftarrow \mathrm{Enc}(PK, M)$：消息空间为 $\mathcal{M} = G$
+- **加密算法** $C \leftarrow \mathrm{Enc}(PK, M)$：消息空间为 $\mathbb{M} = G$
     1. 均匀选取 $r \leftarrow \mathbb{Z}_p$
     2. 计算 $C_1 := g^r$
     3. 计算 $C_2 := h^r \cdot M$
