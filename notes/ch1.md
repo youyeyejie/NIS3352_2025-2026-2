@@ -81,10 +81,10 @@
 #### 公钥加密算法的 SKH/PH/PFbH-PA 安全性
 - **被动攻击**（Passive Attacks, PA）安全模型：
     ![PA-security](image/image.png)
-- **敌手攻击能力**
+- **PA 敌手攻击能力**
     - 输入：公开信道中的 $PK, C$
     - 运行时间：概率多项式时间 PPT
-    - 攻击方式：被动攻击 PA —— 仅仅从公开信道中获取信息，不进行其他攻击
+    - 攻击方式：被动攻击 PA ──  仅仅从公开信道中获取信息，不进行其他攻击
 - **安全目标（刻画不希望该密码算法被攻破目标）**
     1. **隐藏私钥**（SK-hiding, SK）：$\mathrm{output} = SK$ 则攻破该目标
     2. **隐藏明文**（Plaintext-hiding, PH）：$\mathrm{output} = M$ 则攻破该目标
@@ -98,11 +98,11 @@
 #### 公钥加密算法的 IND-CPA 安全性
 - **选择明文攻击**（Chosen-Plaintext Attacks, CPA）安全模型：
     ![CPA-security](image/image-1.png)
-- **敌手攻击能力**：
+- **CPA 敌手攻击能力**：
     - 输入：公开信道中的 $PK$ 及挑战密文 $C^{*}$
 	- 运行时间：概率多项式时间 PPT
-	- 攻击方式：选择明文攻击 CPA ——敌手可以提供/决定/影响加密使用的明文
-- **IND 安全目标**：**不可区分性**（Indistinguishability）——敌手无法区分密文 $C^{*}$ 加密的是 $M_{0}$ 还是 $M_{1}$（即如果 $\mathrm{output} = b$，则攻破该目标）
+	- 攻击方式：选择明文攻击 CPA ── 敌手可以提供/决定/影响加密使用的明文
+- **IND 安全目标**：**不可区分性**（Indistinguishability）── 敌手无法区分密文 $C^{*}$ 加密的是 $M_{0}$ 还是 $M_{1}$（即如果 $\mathrm{output} = b$，则攻破该目标）
 - **公钥加密算法的 IND-CPA 安全性定义**：任意概率多项式时间敌手在 CPA 安全模型中攻破 IND 安全目标的**优势**（advantage）是可忽略的，也即
     $$
     \mathrm{Adv} = \left| \Pr(\mathrm{output} = b) - \frac{1}{2} \right| = \mathrm{negl}(\lambda)
@@ -145,10 +145,10 @@
 #### 公钥加密算法的 IND-mCPA 安全性
 - **多挑战-选择明文攻击**（multiple-challenge Chosen-Plaintext Attacks, mCPA）安全模型：
     ![mCPA-security](image/image-2.png)
-- **敌手的攻击能力**
+- **mCPA 敌手攻击能力**
 	- 输入：公开信道中的 $PK$ 及**多项式**个挑战密文 $C^{*(1)}, \dots, C^{*(Q)}$
 	- 运行时间：概率多项式时间 PPT
-	- 攻击方式：多挑战-选择明文攻击 mCPA ——敌手可以提供/决定/影响加密使用的多个明文
+	- 攻击方式：多挑战-选择明文攻击 mCPA ── 敌手可以提供/决定/影响加密使用的多个明文
 - **IND 安全目标**：敌手无法区分密文 $C^{*(j)}$ 加密的是 $M_{0}^{(j)}$ 还是 $M_{1}^{(j)}$（即如果 $\mathrm{output} = b$，则攻破该目标）
 - **公钥加密算法的 IND-mCPA 安全性定义**：任意概率多项式时间敌手在 mCPA 安全模型中攻破 IND 安全目标的优势是可忽略的，即
     $$
@@ -215,7 +215,7 @@
 #### 公钥加密算法的 IND-CCA 安全性
 - **选择密文攻击**（Chosen-Ciphertext Attacks, CCA）安全模型：
     ![CCA-security](image/image-4.png)
-- **敌手的攻击能力**：
+- **CCA 敌手攻击能力**：
     - 输入：公开信道中的 $PK$ 及挑战密文 $C^{*}$
     - 运行时间：概率多项式时间 PPT
     - 攻击方式：
@@ -336,3 +336,69 @@
     - $\mathcal{A}$ 对 $C^*$ 进行修改，构造一个新的密文 $C' = (C_1', C_2') = (C_1^*, C_2^* \cdot M')$ 进行解密查询，得到 $M'' = M_b \cdot M'$
     - $\mathcal{A}$ 的输出：$\mathrm{output} = \begin{cases} 0 & M''/M' = M_0 \\ 1 & M''/M' = M_1 \end{cases}$
     - 则 $\mathcal{A}$ 能以概率 1 打破 ElGamal 算法的 IND-CCA 安全性。
+
+## 数字签名算法的安全性定义以及 Schnorr 签名算法
+### 数字签名算法的安全性
+#### 数字签名简介
+- **数字签名的要求**：
+    - **可认证性**：能够验证消息源，以及消息的真实性/完整性
+    - **不可否认性**：签名能够被公开验证
+- **数字签名实现安全认证的条件**：
+    - 生成签名相对容易
+    - 识别和验证签名相对容易
+    - 在计算上不可伪造：
+        - 对新消息伪造签名不可行
+        - 对已有签名伪造新签名并通过认证不可行
+
+#### 数字签名算法的语义及正确性要求
+- **语义**：一个数字签名方案 $\mathrm{DS}$ 包含三个概率多项式时间（PPT）算法 $(\mathrm{Gen}, \mathrm{Sign}, \mathrm{Verify})$：
+    1. **密钥生成算法**：$(PK, SK) \leftarrow \mathrm{Gen}(1^\lambda)$：⼀般为概率性算法
+    2. **签名算法**：$\sigma \leftarrow \mathrm{Sign}(SK, M)$：$M \in \mathcal{M}$，其中 $\mathcal{M}$ 是消息空间
+    3. **验证算法**：$0/1 \leftarrow \mathrm{Verify}(PK, M, \sigma)$：一般为确定性算法；输出 $1$ 表示验证通过
+- **正确性要求**（Correctness）：对任意 $(PK, SK) \leftarrow \mathrm{Gen}(1^\lambda)$、任意 $M \in \mathcal{M}$、任意 $\sigma \leftarrow \mathrm{Sign}(SK, M)$，均有
+    $$
+    \mathrm{Verify}(PK, M, \sigma) = 1
+    $$
+
+#### 数字签名算法的 EUF-CMA 安全性
+- **选择消息攻击**（Chosen Message Attacks, CMA）安全模型：
+    ![CMA-security](image/image-5.png)
+- **CMA 敌手攻击能力**：
+    - 输入：公开信道中的 $PK, M, \sigma$
+    - 运行时间：概率多项式时间 PPT
+    - 攻击方式：选择消息攻击 CMA ── 敌手可以提供/决定/影响签名使用的消息
+- **EUF 安全目标**：**存在不可伪造性**（Existential Unforgeability, EUF）── 敌手无法为一个**未查询过的新消息** $M^*$ 伪造有效签名 $\sigma^*$（即如果 $\mathrm{output} = (M^*, \sigma^*)$，满足 $M^* \notin \{M_i\}$ 和 $\mathrm{Verify}(PK, M^*, \sigma^*) = 1$，则攻破该目标）
+- **数字签名算法的 EUF-CMA 安全性定义**: 任意概率多项式时间敌手在 CMA 安全模型中攻破 EUF 安全目标的**优势**是可忽略的，即
+    $$
+    \mathrm{Adv}_{\mathrm{EUF-CMA}} = \Pr\left[
+    \mathrm{output} = (M^*, \sigma^*) \left|
+    \begin{array}{l}
+    (1)\ M^* \notin \{ M_i \} \\
+    (2)\ \mathrm{Verify}(\mathrm{PK}, M^*, \sigma^*) = 1
+    \end{array}
+    \right.\right] = \mathrm{negl}(\lambda)
+    $$
+
+#### 数字签名算法的 sEUF-CMA 安全性
+- **sEUF 安全目标**：**强存在不可伪造性**（Strong Existential Unforgeability, sEUF）── 敌手不仅无法为一个**未查询过的新消息** $M^*$ 伪造有效签名 $\sigma^*$，也无法为一个已签名消息 $M_i$ 伪造**新的有效签名** $\sigma^* \neq \sigma_i$（即如果 $\mathrm{output} = (M^*, \sigma^*)$，满足 $(M^*, \sigma^*) \notin \{(M_i, \sigma_i)\}$ 和 $\mathrm{Verify}(PK, M^*, \sigma^*) = 1$，则攻破该目标）
+- **数字签名算法的 sEUF-CMA 安全性定义**: 任意概率多项式时间敌手在 CMA 安全模型中攻破 sEUF 安全目标的**优势**是可忽略的，即
+    $$
+    \mathrm{Adv}_{\mathrm{sEUF-CMA}} = \Pr\left[
+    \mathrm{output} = (M^*, \sigma^*) \left|
+    \begin{array}{l}
+    (1)\ (M^*, \sigma^*) \notin \{ (M_i, \sigma_i) \} \\
+    (2)\ \mathrm{Verify}(\mathrm{PK}, M^*, \sigma^*) = 1
+    \end{array}
+    \right.\right] = \mathrm{negl}(\lambda)
+    $$
+
+#### EUF-CMA 与 sEUF-CMA 安全性之间的关系
+- **一般情况**：sEUF-CMA 安全 $\impliedby$ EUF-CMA 安全
+    $$
+    \mathrm{Adv}_{\mathrm{sEUF-CMA}} \leq \mathrm{Adv}_{\mathrm{EUF-CMA}}
+    $$
+- **若满足唯一性要求**：sEUF-CMA 安全 $\iff$ EUF-CMA 安全
+    $$
+    \mathrm{Adv}_{\mathrm{sEUF-CMA}} = \mathrm{Adv}_{\mathrm{EUF-CMA}}
+    $$
+    - **唯一性要求**（uniqueness）：$\forall (PK,SK) \leftarrow \mathrm{Gen}(1^\lambda), \forall M \in \mathcal{M}$，存在唯一的 $\sigma$ 使得 $\mathrm{Verify}(PK, M, \sigma) = 1$。
