@@ -112,6 +112,7 @@
     ![](image/image-9.png)
 
 #### Schnorr 签名算法
+- **组件**：Hash Function $H: \{0,1\}^{*} \to \mathbb{Z}_p$
 - **密钥生成算法** $(PK, SK) \leftarrow \mathrm{Gen}(1^\lambda)$：
     1. 选择循环群 $G$，其阶为素数 $p$、生成元为 $g$
     2. 均匀选取 $s \leftarrow \mathbb{Z}_p$，计算 $h := g^s \in G$
@@ -235,5 +236,41 @@ $$
 
 ### DSA 身份证明协议与签名算法
 #### DSA 身份证明协议
+- 目的：Prover 向 Verifier 证明自己拥有 $PK$ 所对应的私钥 $SK$。
+- 交互流程：基于椭圆曲线上的离散对数问题
+    ![](image/image-12.png)
 
 #### DSA 签名算法
+- **组件**：Hash Functions
+    - $H: \{0,1\}^{*} \to \mathbb{Z}_p$
+    - $F: G \to \mathbb{Z}_p$
+- **密钥生成算法** $(PK, SK) \leftarrow \mathrm{Gen}(1^\lambda)$：
+    1. 选择循环群 $G$，其阶为素数 $p$、生成元为 $g$
+    2. 均匀选取 $s \leftarrow \mathbb{Z}_p$，计算 $h := g^s \in G$
+    3. 输出 $PK = (G, p, g, h)$，$SK = s$
+- **签名算法** $\sigma \leftarrow \mathrm{Sign}(SK, M)$，消息空间为 $\mathbb{M}=\{0,1\}^{*}$
+    1. 均匀选取 $r \leftarrow \mathbb{Z}_{p}$，计算 $R:=g^{r} \in G$
+    2. 计算 $e:=H(M) \in \mathbb{Z}_{p}$
+    3. 计算 $d:=F(R) \in \mathbb{Z}_{p}$
+    4. 计算 $z:=r^{-1}(e + d \cdot s) \in \mathbb{Z}_{p}$
+    5. 输出 $\sigma:=(d, z)$
+- **验证算法** $0/1 \leftarrow \mathrm{Verify}(PK, M, \sigma=(d, z))$
+    1. 计算 $e:=H(M) \in \mathbb{Z}_{p}$
+    2. 计算 $R:=(g^e \cdot h^d)^{z^{-1}} \in G$
+    3. 计算 $d':=F(R) \in \mathbb{Z}_{p}$
+    4. 验证 $d \stackrel{?}{=} d'$，相等输出 $1$，否则输出 $0$
+
+#### 安全性分析
+$$
+\begin{aligned}
+&\text{DL 问题困难} + H,F \text{ 为 RO} \\
+\implies &\text{DSA 身份证明协议是 UI-PA 安全的} + H,F \text{ 为 RO} \\
+\implies &\text{DSA 签名算法是 EUF-CMA 安全的}
+\end{aligned}
+$$
+
+#### DSA 与 ECDSA 签名算法的应用
+- DSA 为上述算法在大整数循环群 $G=\mathbb{Z}_N^*$ 的 $p$ 阶子群上的具体实现，其中 $F: G \to \mathbb{Z}_p$ 定义为 $F(R) = R \bmod p$
+- ECDSA 为上述算法在椭圆曲线循环群 $G$ 上的具体实现，其中 $F: G \to \mathbb{Z}_p$ 定义为 $F(R=(x_R, y_R)) = x_R \bmod p$。
+
+> 基于上述具体 $F$ 函数的 DSA/ECDSA 签名算法的安全性没有基于标准困难问题的安全性证明，但也不存在有效的攻击方法，因此在实际应用中被广泛使用。
