@@ -129,7 +129,7 @@
 ##### Schnorr 签名算法的 EUF-CMA 安全性
 - **断言1**：如果在数字签名的 EUF-CMA 安全模型下，存在攻击者 $\mathcal{A}$ 以不可忽略的概率攻破 Schnorr 签名。设 $\mathcal{A}$ 的输出为 $(M^{*}, \sigma^{*}=(R^{*}, z^{*}))$，即
     $$
-    Adv_{\mathcal{A}}=Pr\left[output _{\mathcal{A}}=(M^{*}, \sigma^{*}): h^{H(R^{*}, M^{*})} \cdot R^{*}=g^{z^{*}}\right]=\text{non-negl}(\lambda)
+    Adv_{\mathcal{A}}=Pr\left(output _{\mathcal{A}}=(M^{*}, \sigma^{*})\left| h^{H(R^{*}, M^{*})} \cdot R^{*}=g^{z^{*}}\right.\right)=\text{non-negl}(\lambda)
     $$
 
     则 $\mathcal{A}$ 以不可忽略的概率查询过 $(R^{*}, M^{*})$ 的 Hash 值。

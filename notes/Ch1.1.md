@@ -122,7 +122,7 @@
     - **证明**：以 SKH-PA 安全性为例，采用反证法（**安全性归约**）
         - **假设结论错误**：算法不是 SKH-PA 安全的，即存在一个概率多项式敌手 $\mathcal{A}$，以不可忽略的概率在 PA 安全模型中攻破 SKH 安全目标，即
             $$
-            \mathrm{Adv}_\mathcal{A} = \Pr[\mathcal{A}(PK, C) = SK] = \text{non-negl}(\lambda)
+            \mathrm{Adv}_\mathcal{A} = \Pr(\mathcal{A}(PK, C) = SK) = \text{non-negl}(\lambda)
             $$
         - **证明前提错误**：构造一个概率多项式时间敌手 $\mathcal{B}$，在 CPA 安全模型中攻破 IND 安全目标。
             - $\mathcal{B}$ 的输入：公开信道中的 $PK$ 及挑战密文 $C^{*}$
