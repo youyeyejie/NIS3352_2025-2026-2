@@ -157,17 +157,23 @@
 #### 双线性对
 - **双线性对**（Bilinear map）：设 $E_1$、$E_2$ 为有限域 $F_q$ 的两条椭圆曲线，且 $G_1 \leq E_1(F_q),G_2 \leq E_2(F_q),G_T \leq F_q^*$，则**双线性映射**
     $$
-    e: G_1 \times G_2 \rightarrow G_T
+    \begin{aligned}
+    e: &G_1 \times G_2 \rightarrow G_T \\
+    &(P, Q) \mapsto e(P, Q)
+    \end{aligned}
     $$
 
-    满足：$\forall P_1,P_2,P\in G_1, \forall Q_1,Q_2,Q\in G_2, \forall a, b\in \mathbb{Z}$，有：
+    满足对 $\forall P_1,P_2,P\in G_1, \forall Q_1,Q_2,Q\in G_2, \forall a, b\in \mathbb{Z}$，有：
 
     1. $e\left(P_1+P_2, Q\right)=e\left(P_1, Q\right)e\left(P_2, Q\right)$
     2. $e\left(P, Q_1+Q_2\right)=e\left(P, Q_1\right)e\left(P, Q_2\right)$
-    3. $e(aP, bQ)=e(P, Q)^{ab}$
-- 双线性对性质：
+- **推论**：
+    - $e(aP, Q)=e(P, aQ)=e(P, Q)^a$
+    - $e(aP, bQ)=e(P, Q)^{ab}$
+    - $e(O_1, Q)=e(P, O_2)=1_{G_T}$，其中 $O_1$ 和 $O_2$ 分别为 $G_1$ 和 $G_2$ 的零元。
+- **双线性对性质**：
     - $e$ 是非退化的，即存在 $P, Q$ 使得 $e(P, Q) \neq 1_{G_T}$
-    - $e$ 是有效计算的
+    - $e$ 是有效计算的，即存在 PPT 算法可以计算 $e(P, Q)$。
     - 若 $G_1 =\langle P_1\rangle, G_2=\langle P_2\rangle, G_T=\langle g_T\rangle$ 为素数阶 $N$ 的循环群，则 $g_T=e(P_1, P_2)$ 是 $G_T$ 的生成元。
 
 #### 配对群
@@ -180,5 +186,7 @@
     2. **Type Ⅱ 非对称配对**：$G_1 \neq G_2$，且存在从 $G_2$ 到 $G_1$ 的、可高效（PPT）计算的同构映射 $\psi: G_2 \to G_1$，即满足 $\forall a \in \mathbb{Z}_N, \psi(aP_2)=aP_1$
     3. **Type Ⅲ 非对称配对**：$G_1 \neq G_2$，且 $G_1$ 与 $G_2$ 之间不存在可高效（PPT）计算的同构映射 $\psi$
 - **定理**：
-    1. 对于 Type Ⅰ 对称配对群，$G$ 上的 DDH 问题不困难（但 $G$ 上的CDH问题可能仍然困难）
+    1. 对于 Type Ⅰ 对称配对群，$G$ 上的 DDH 问题不困难（但 $G$ 上的 CDH 问题可能仍然困难）
+        - 证明：输入 $(P, xP, yP, z_bP)$，计算 $e(xP, yP)=e(P, P)^{xy}$ 和 $e(z_bP, P)=e(P, P)^{z_b}$，比较两者是否相等即可判断 $b$ 的值。
     2. 对于 Type Ⅱ 非对称配对群，$G_2$ 上的 DDH  问题不困难（但 $G_2$ 上的 CDH 问题、$G_1$ 上的 DDH 问题可能仍然困难）
+        - 证明：输入 $(P_2, xP_2, yP_2, z_bP_2)$，计算 $e(\phi(xP_2), yP_2)=e(xP_1, yP_2)=e(P_1, P_2)^{xy}$ 和 $e(P_1, z_bP_2)=e(P_1, P_2)^{z_b}$，比较两者是否相等即可判断 $b$ 的值。
