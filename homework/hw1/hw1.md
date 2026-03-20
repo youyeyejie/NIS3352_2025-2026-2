@@ -93,7 +93,7 @@ $$
 - 因此，Plain RSA 不是 IND-CPA 安全的。
 ---
 
-### Problem 4 (25 marks)
+## Problem 4 (25 marks)
 变体 ElGamal 加密，对一比特消息 $b$ 进行加密，公钥 $PK = (G, q, g, h=g^x)$，私钥 $SK = x$，密文为 $(c_1, c_2) = \begin{cases} (g^y, h^y)=(g^y, g^{xy}) & b=0 \\ (g^y, g^z) & b=1 \end{cases}$，其中 $y,z\leftarrow \mathbb{Z}_q$
 
 1. 解密算法：计算 $c_2 / c_1^x$，如果结果为 $1$ 则输出 $b'=0$，否则输出 $b'=1$。
