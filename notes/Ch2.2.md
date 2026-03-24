@@ -60,7 +60,7 @@
 - **IND 安全目标**：**不可区分性**（Indistinguishability）── 敌手无法区分密文 $C^{*}$ 加密的是 $M_{0}$ 还是 $M_{1}$（即如果 $\mathrm{output} = b$，则攻破该目标）
 - **IND-ID-CPA 安全性定义**：任意 PPT 敌手在 ID-CPA 安全模型中攻破 IND 安全目标的优势是可忽略的，即
     $$
-    Adv = \left|Pr(\mathrm{output} = b) - \frac{1}{2}\right| = \mathrm{negl}(\lambda)
+    Adv = \left|\Pr(\mathrm{output} = b) - \frac{1}{2}\right| = \mathrm{negl}(\lambda)
     $$
 
 ### Boneh-Franklin 基于身份的加密算法
@@ -82,8 +82,8 @@
 - **判定性 BDDH 问题困难**：任意 PPT 敌手的优势是可忽略的，即
     $$
     \begin{aligned}
-    Adv &= \left|Pr(\mathrm{output}=\beta) - \frac{1}{2}\right| \\
-    &= \frac{1}{2} \left|Pr(\mathrm{output}=0 \mid \beta=0) - Pr(\mathrm{output}=0 \mid \beta=1)\right| \\
+    Adv &= \left|\Pr(\mathrm{output}=\beta) - \frac{1}{2}\right| \\
+    &= \frac{1}{2} \left|\Pr(\mathrm{output}=0 \mid \beta=0) - \Pr(\mathrm{output}=0 \mid \beta=1)\right| \\
     &= \mathrm{negl}(\lambda)
     \end{aligned}
     $$

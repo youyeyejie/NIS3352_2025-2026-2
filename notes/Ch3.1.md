@@ -65,13 +65,13 @@
     $$
     \forall y \in \mathcal{L}, \| v-t\| \leq \| y-t\|
     $$
-- **近似最短向量问题** $(SVP_{\gamma})$：给定格 $L$ 的任意格基 $B$，找到 $v \in L\setminus\{0\}$ 使得
+- **近似最短向量问题** $(SVP_{\gamma})$：给定格 $\mathcal{L}$ 的任意格基 $B$，找到 $v \in \mathcal{L}\setminus\{0\}$ 使得
     $$
-    \| v\| ≤\gamma(m) \cdot \lambda_{1}(L)
+    \| v\| ≤\gamma(m) \cdot \lambda_{1}(\mathcal{L})
     $$
-- **近似最近向量问题** $(CVP_{\gamma})$：给定格 $L$ 的任意格基 $B$，以及 $t \in \mathbb{R}^{m}$，找到 $v \in L$ 使得
+- **近似最近向量问题** $(CVP_{\gamma})$：给定格 $\mathcal{L}$ 的任意格基 $B$，以及 $t \in \mathbb{R}^{m}$，找到 $v \in \mathcal{L}$ 使得
     $$
-    \forall y \in L, \| v-t\| \leq \gamma(m) \cdot\| y-t\|
+    \forall y \in \mathcal{L}, \| v-t\| \leq \gamma(m) \cdot\| y-t\|
     $$
 - **有界距离解码问题** $(BDD_{\delta})$：给定格 $\mathcal{L}$ 的任意格基 $B$，以及 $t \in \mathbb{R}^{m}$，满足 $\mathrm{dist}(\mathcal{L}, t) \leq\delta<\frac{\lambda_{1}(\mathcal{L})}{2}$，找到唯一的格向量 $w \in \mathcal{L}$，使得
     $$
@@ -82,98 +82,20 @@
 - **定理**：$SVP_{\gamma(m)} \leq_{P} CVP_{\gamma(m)}$。
 
 ### LWE 问题（Learning with Errors）
-<!-- $$14 \cdot s_{1}+15 \cdot s_{2}+5 \cdot s_{3}+2 \cdot s_{4} \approx 8 \ mod 17$$
-$$13 \cdot s_{1}+14 \cdot s_{2}+14 \cdot s_{3}+6 \cdot s_{4} \approx 16 \ mod 17$$
-$$6 \cdot s_{1}+10 \cdot s_{2}+13 \cdot s_{3}+1 \cdot s_{4} \approx 3 \ mod 17$$
-⇒
-$$\begin{pmatrix}14 & 15 & 5 & 2 \\ 13 & 14 & 14 & 6 \\ 6 & 10 & 13 & 1\end{pmatrix} \cdot \begin{pmatrix}s_{1} \\ s_{2} \\ s_{3} \\ s_{4}\end{pmatrix} \approx \begin{pmatrix}8 \\ 16 \\ 3\end{pmatrix} \ mod 17$$
+- **计算性 LWE 问题**（CLWE）：$n,m$ 为整数，$q$ 为正整数，$\chi$ 为区间 $[-B_{\chi}, B_{\chi}]$ 上的概率分布。均匀选取 $A \leftarrow \mathbb{Z}_{q}^{n ×m}$，$s \leftarrow \mathbb{Z}_{q}^{n}$，根据 $\chi$ 分布选取 $e \leftarrow[-B_{\chi}, B_{\chi}]^{m}$，计算 $z:=A^{\top} s+e \in \mathbb{Z}_{q}^{m}$。
+    - **输入**：$(A, z)$
+    - **输出**：$\mathrm{output}$
+    - **计算性 LWE 问题困难**：任意 PPT 敌手的优势是可忽略的，即
+        $$
+        \left|\Pr(\mathrm{output}=s) - \frac{1}{q^{n}}\right| = \mathrm{negl}(\lambda)
+        $$
+    - 直觉：定义格 $\mathcal{L}(A)=\{x \in \mathbb{Z}^{m} \mid x=A^{T} s \pmod q, s \in \mathbb{Z}_{q}^{n}\}$，则 $z$ 是 $\mathcal{L}(A)$ 中某个格点附近的一个点，$e$ 是噪声。
+- **判定性 LWE 问题**（DLWE）：$n,m$ 为整数，$q$ 为正整数，$\chi$ 为区间 $[-B_{\chi}, B_{\chi}]$ 上的概率分布。均匀选取 $A \leftarrow \mathbb{Z}_{q}^{n ×m}$，$s \leftarrow \mathbb{Z}_{q}^{n}$，根据 $\chi$ 分布选取 $e \leftarrow[-B_{\chi}, B_{\chi}]^{m}$，计算 $z_{0}:=A^{\top} s+e \in \mathbb{Z}_{q}^{m}$，$z_{1} \leftarrow \mathbb{Z}_{q}^{m}$，均匀选取 $\beta \leftarrow\{0,1\}$。
+    - **输入**：$(A, z_{\beta})$
+    - **输出**：$\mathrm{output}$
+    - **判定性 LWE 问题困难**：任意 PPT 敌手的优势是可忽略的，即
+        $$
+        \left|\Pr(\mathrm{output}=\beta) - \frac{1}{2}\right| = \mathrm{negl}(\lambda)
+        $$
+- **定理**：**判定性 LWE 问题困难** $\iff$ **计算性 LWE 问题困难**
 
-$$\begin{pmatrix}14 & 15 & 5 & 2 \\ 13 & 14 & 14 & 6 \\ 6 & 10 & 13 & 1\end{pmatrix} \cdot \begin{pmatrix}s_{1} \\ s_{2} \\ s_{3} \\ s_{4}\end{pmatrix}+\begin{pmatrix}e_{1} \\ e_{2} \\ e_{3}\end{pmatrix}=\begin{pmatrix}8 \\ 16 \\ 3\end{pmatrix} \ mod 17$$
-
-## 计算性LWE问题(Learning with Errors)
-计算性LWE问题： $n<m$ 为整数, $q$ 为正整数, $\chi$ 为区间 $[-B_{\chi}, B_{\chi}]$ 上的概率分布。
-均匀选取 $A \leftarrow \mathbb{Z}_{q}^{n ×m}$， $s \leftarrow \mathbb{Z}_{q}^{n}$， 根据 $\chi$ 分布选取 $e \leftarrow[-B_{\chi}, B_{\chi}]^{m}$，计算 $z：=A^{\top} s+e \in \mathbb{Z}_{q}^{m}$。
-输入：$(A, z)$
-● 输出：$s$
-
-计算性LWE问题：n,m为整数, q 为正整数, $\chi$ 为区间 $[-B_{\chi}, B_{\chi}]$ 上的概率分布。
-均匀选取 $A \leftarrow \mathbb{Z}_{q}^{n ×m}$， $s \leftarrow \mathbb{Z}_{q}^{n}$， 根据 $\chi$ 分布选取 $e \leftarrow[-B_{\chi}, B_{\chi}]^{m}$，计算 $z：=A^{\top} s+e \in \mathbb{Z}_{q}^{m}$。
-输入：$(A, z)$
-● 输出：$s$
-
-服从$\chi$分布
-n
-s
-$A^T$ + e
-m
-
-直觉：$z$ 是$L(A)$中某个格点附近的一个点,$e$ 是噪声。
-定义格 $L(A)=\{x \in \mathbb{Z}^{m} | x=A^{T} s \ mod q， s \in \mathbb{Z}_{q}^{n}\}$。
-
-## 判定性LWE问题(Learning with Errors)
-判定性LWE问题： n,m为整数, q 为正整数, $\chi$ 为区间 $[-B_{\chi}, B_{\chi}]$ 上的概率分布。
-均匀选取 $A \leftarrow \mathbb{Z}_{q}^{n ×m}$， $s \leftarrow \mathbb{Z}_{q}^{n}$， 根据 $\chi$ 分布选取 $e \leftarrow[-B_{\chi}, B_{\chi}]^{m}$，计算 $z_{0}：=A^{\top} s+e \in \mathbb{Z}_{q}^{m}$， $z_{1} \leftarrow \mathbb{Z}_{q}^{m}$， 均匀选取$\beta \leftarrow\{0,1\}$。
-输入：$((A, z_{\beta}))$
-输出：output
-
-判定性LWE问题：n, m为整数,q为正整数,χ 为区间 $[-B_{\chi}, B_{\chi}]$ 上的概率分布。
-均匀选取 $A \leftarrow \mathbb{Z}_{q}^{n ×m}$， $s \leftarrow \mathbb{Z}_{q}^{n}$， 根据 $\chi$ 分布选取 $e \leftarrow \chi^{m}$，计算 $z_{0}：=A^{\top} s+e \in \mathbb{Z}_{q}^{m}$， $z_{1} \leftarrow \mathbb{Z}_{q}^{m}$， 均匀选取$\beta \leftarrow\{0,1\}$。
-m
-n A
-z0
-A
-n
-z1 ￩ $\mathbb{Z}_q^m$
-• 输入：$((A, z_{\beta}))$
-输出：output
-
-判定性LWE问题：n, m为整数,q为正整数, $\chi$ 为区间 $[-B_{\chi}, B_{\chi}]$ 上的概率分布。
-均匀选取 $A \leftarrow \mathbb{Z}_{q}^{n ×m}$， $s \leftarrow \mathbb{Z}_{q}^{n}$， 根据 $\chi$ 分布选取 $e \leftarrow[-B_{\chi}, B_{\chi}]^{m}$, 计算 $z_{0}：=A^{\top} s+e \in \mathbb{Z}_{q}^{m}$， $z_{1} \leftarrow \mathbb{Z}_{q}^{m}$， 均匀选取$\beta \leftarrow\{0,1\}$。
-• 输入：$((A, z_{\beta}))$
-输出：output
-
-服从$\chi$分布
-m n
-n A
-s
-z0 $A^T$
-=
-A
-n
-z1 ￩ $\mathbb{Z}_q^m$
-
-服从$\chi$分布
-m n
-1
-$A^T$ 的列空间(n维)
-+ small errors
-A
-s
-z0 $A^T$
-m
-=
-A
-z1 ￩ $\mathbb{Z}_q^m$
-全空间(m维)
-
-判定性LWE问题：n, m为整数,q为正整数,χ 为区间 $[-B_{\chi}, B_{\chi}]$ 上的概率分布。
-均匀选取 $A \leftarrow \mathbb{Z}_{q}^{n ×m}$， $s \leftarrow \mathbb{Z}_{q}^{n}$， 根据 $\chi$ 分布选取 $e \leftarrow[-B_{\chi}, B_{\chi}]^{m}$，计算 $z_{0}：=A^{\top} s+e \in \mathbb{Z}_{q}^{m}$， $z_{1} \leftarrow \mathbb{Z}_{q}^{m}$， 均匀选取$\beta \leftarrow\{0,1\}$。
-• 输入：$((A, z_{\beta}))$
-输出：output
-
-判定性 LWE问题 困难是指：
-任意概率多项式时间敌手的优势 $| Pr[ output =\beta]-1/2 |$ 或 $|Pr[ output =1 | \beta=0]-Pr[ output =1 | \beta=1]|$ 是可忽略的。
-
-判定性LWE问题：n, m为整数,q为正整数,χ 为区间 $[-B_{\chi}, B_{\chi}]$ 上的概率分布。
-均匀选取 $A \leftarrow \mathbb{Z}_{q}^{n ×m}$， $s \leftarrow \mathbb{Z}_{q}^{n}$， 根据 $\chi$ 分布选取 $e \leftarrow \chi^{m}$，计算 $z_{0}：=A^{\top} s+e \in \mathbb{Z}_q^{m}$， $z_{1} \leftarrow \mathbb{Z}_q^{m}$， 均匀选取$\beta \leftarrow\{0,1\}$。
-• 输入：$((A, z_{\beta}))$
-输出：output
-
-判定性 LWE 问题困难是指：
-任意概率多项式时间敌手的优势$| Pr[ output =\beta]-1/2 |$ 或 $| Pr[output = 1 | \beta = 0] - Pr[output = 1 | \beta = 1] |$ 是可忽略的。
-
-定理：判定性LWE问题困难⇒计算性LWE问题困难。
-
-定理([Regev05])：判定性LWE问题困难⇔ 计算性LWE问题困难。
-
-谢谢! -->
