@@ -119,28 +119,31 @@
         \end{aligned}
         $$
 - **IND-CPA 安全性的合理性**：公钥加密算法的 **IND-CPA 安全性** $\implies$ **SKH-PA/PH-PA/PFbH-PA 安全性**
-    - **证明**：以 SKH-PA 安全性为例，采用反证法（**安全性归约**）
-        - **假设结论错误**：算法不是 SKH-PA 安全的，即存在一个概率多项式敌手 $\mathcal{A}$，以不可忽略的概率在 PA 安全模型中攻破 SKH 安全目标，即
-            $$
-            \mathrm{Adv}_\mathcal{A} = \Pr(\mathcal{A}(PK, C) = SK) = \text{non-negl}(\lambda)
-            $$
-        - **证明前提错误**：构造一个概率多项式时间敌手 $\mathcal{B}$，在 CPA 安全模型中攻破 IND 安全目标。
-            - $\mathcal{B}$ 的输入：公开信道中的 $PK$ 及挑战密文 $C^{*}$
-            - 调用子敌手：$\mathcal{B}$ 将 $(PK, C^{*})$ 交给 $\mathcal{A}$，模拟 SKH-PA 实验，$\mathcal{A}$ 输出一个候选私钥 $SK'$。$\mathcal{B}$ 尝试使用 $SK'$ 解密 $C^{*}$，得到 $M' = \mathrm{Dec}(SK', C^{*})$
-                ![](image/image-3.png)
-            - $\mathcal{B}$ 的输出：$\mathrm{output} = \begin{cases} 0 & M' = M_0 \\ 1 & M' = M_1 \\ \mathrm{random}\{0, 1\} & \text{otherwise} \end{cases}$
-            - $\mathcal{B}$ 的优势：
-                $$
-                \begin{aligned}
-                \mathrm{Adv}_\mathcal{B} = &\left| \Pr(\mathrm{output} = b) - \frac{1}{2} \right| \\
-                =& \left| \Pr(\mathrm{output} = b \mid SK' = SK) \cdot \Pr(SK' = SK) + \Pr(\mathrm{output} = b \mid SK' \neq SK) \cdot \Pr(SK' \neq SK) - \frac{1}{2} \right| \\
-                =& \left| 1 \cdot \text{non-negl}(\lambda) + \frac{1}{2} \cdot (1 - \text{non-negl}(\lambda)) - \frac{1}{2} \right| \\
-                =& \frac{1}{2} \cdot \text{non-negl}(\lambda) = \text{non-negl}(\lambda)
-                \end{aligned}
-                $$
 
-                即 $\mathcal{B}$ 在 CPA 安全模型中攻破 IND 安全目标的优势是不可忽略的，算法不是 IND-CPA 安全的，与前提矛盾。
-    - **结论**：IND-CPA 是公钥加密算法的基本安全性要求。
+!!! fold info @Pf
+    以 SKH-PA 安全性为例，采用反证法（**安全性归约**）
+
+    - **假设结论错误**：算法不是 SKH-PA 安全的，即存在一个概率多项式敌手 $\mathcal{A}$，以不可忽略的概率在 PA 安全模型中攻破 SKH 安全目标，即
+        $$
+        \mathrm{Adv}_\mathcal{A} = \Pr(\mathcal{A}(PK, C) = SK) = \text{non-negl}(\lambda)
+        $$
+    - **证明前提错误**：构造一个概率多项式时间敌手 $\mathcal{B}$，在 CPA 安全模型中攻破 IND 安全目标。
+        - $\mathcal{B}$ 的输入：公开信道中的 $PK$ 及挑战密文 $C^{*}$
+        - 调用子敌手：$\mathcal{B}$ 将 $(PK, C^{*})$ 交给 $\mathcal{A}$，模拟 SKH-PA 实验，$\mathcal{A}$ 输出一个候选私钥 $SK'$。$\mathcal{B}$ 尝试使用 $SK'$ 解密 $C^{*}$，得到 $M' = \mathrm{Dec}(SK', C^{*})$
+            ![](image/image-3.png)
+        - $\mathcal{B}$ 的输出：$\mathrm{output} = \begin{cases} 0 & M' = M_0 \\ 1 & M' = M_1 \\ \mathrm{random}\{0, 1\} & \text{otherwise} \end{cases}$
+        - $\mathcal{B}$ 的优势：
+            $$
+            \begin{aligned}
+            \mathrm{Adv}_\mathcal{B} = &\left| \Pr(\mathrm{output} = b) - \frac{1}{2} \right| \\
+            =& \left| \Pr(\mathrm{output} = b \mid SK' = SK) \cdot \Pr(SK' = SK) + \Pr(\mathrm{output} = b \mid SK' \neq SK) \cdot \Pr(SK' \neq SK) - \frac{1}{2} \right| \\
+            =& \left| 1 \cdot \text{non-negl}(\lambda) + \frac{1}{2} \cdot (1 - \text{non-negl}(\lambda)) - \frac{1}{2} \right| \\
+            =& \frac{1}{2} \cdot \text{non-negl}(\lambda) = \text{non-negl}(\lambda)
+            \end{aligned}
+            $$
+
+            即 $\mathcal{B}$ 在 CPA 安全模型中攻破 IND 安全目标的优势是不可忽略的，算法不是 IND-CPA 安全的，与前提矛盾。
+- **结论**：IND-CPA 是公钥加密算法的基本安全性要求。
 
 #### 公钥加密算法的 IND-mCPA 安全性
 - **多挑战-选择明文攻击**（multiple-challenge Chosen-Plaintext Attacks, mCPA）安全模型：
@@ -163,6 +166,8 @@
     \end{aligned}
     $$
 - **IND-CPA 与 IND-mCPA 的等价性**：公钥加密算法的 **IND-CPA 安全性** $\iff$ **IND-mCPA 安全性**
+
+!!! fold info @Pf
     - **必要性易证**（$\impliedby$）：IND-CPA 是 IND-mCPA $Q=1$ 的特殊情况
     - **充分性证明**（$\implies$）：采用混合论证（Hybrid Arguments）与三角不等式，核心思路是在全加密 $M_0^{(j)}$ 和全加密 $M_1^{(j)}$ 两个极端场景之间，插入一系列混合场景（Hybrid），证明相邻混合场景的不可区分性，最终推导出两个极端场景的不可区分性。
         1. **定义两个极端游戏**（Game）：设敌手发起 $Q=\mathrm{poly}(\lambda)$ 次挑战，定义两个基础游戏：
@@ -280,55 +285,57 @@
 
 #### ElGamal 加密算法的 IND-CPA 安全性
 - **定理**：**DDH 问题困难** $\iff$ **ElGamal 算法是 IND-CPA 安全的**
-- **证明** $\implies$：反证法（安全性归约）
-    - 假设结论错误：ElGamal 算法不是 IND-CPA 安全的，即存在一个概率多项式时间敌手 $\mathcal{A}$，以不可忽略的概率在 ElGamal 算法 CPA 安全模型中攻破 IND 安全目标，即
-        $$
-        \mathrm{Adv}_\mathcal{A} = \left| \Pr(\mathrm{output}_\mathcal{A} = b) - \frac{1}{2} \right| = \text{non-negl}(\lambda)
-        $$
-    - 证明前提错误：构造一个概率多项式时间敌手 $\mathcal{B}$，在 DDH 安全模型中攻破 DDH 安全目标。
-        - $\mathcal{B}$ 的输入：$(G, p, g, g^x, g^y, z_\beta)$
-        - 调用子敌手：$\mathcal{B}$ 将 $PK = (G, p, g, h=g^x)$ 交给 $\mathcal{A}$，$\mathcal{A}$ 输入两个消息 $M_0, M_1 \in G$，$\mathcal{B}$ 将挑战密文设置为 $C^{*} = (g^y, z_\beta \cdot M_b)$ 交给 $\mathcal{A}$，则
-            - $\beta = 0$ 时：$C^{*} = (g^y, M_b \cdot g^{xy})$，与 ElGamal 加密 $M_b$ 的密文分布相同，则
-                $$
-                \left|\Pr(\mathrm{output}_\mathcal{A}=b\mid \beta=0) - \frac{1}{2}\right| = \left| \Pr(\mathrm{output}_\mathcal{A} = b) - \frac{1}{2} \right| = \text{non-negl}(\lambda)
-                $$
 
-                也即 $\Pr(\mathrm{output}_\mathcal{A}=b \mid \beta=0) = \frac{1}{2} \pm \text{non-negl}(\lambda)$
-            - $\beta = 1$ 时：$C^{*} = (g^y, M_b \cdot g^{z})$，由于 $z \leftarrow \mathbb{Z}_p$ 均匀分布，$M_b \cdot g^{z}$ 也均匀分布在 $G$ 中，则密文不包含任何关于 $b$ 的信息，$\Pr(\mathrm{output}_\mathcal{A}=b \mid \beta=1) = \frac{1}{2}$
-        - $\mathcal{B}$ 的输出：$\mathrm{output}_\mathcal{B} = \begin{cases} 0 & \mathrm{output}_\mathcal{A} = b \\ 1 & \mathrm{output}_\mathcal{A} \neq b \end{cases}$
-        - $\mathcal{B}$ 的优势：
+!!! fold info @Pf
+    - **充分性证明**（$\implies$）：反证法（安全性归约）
+        - 假设结论错误：ElGamal 算法不是 IND-CPA 安全的，即存在一个概率多项式时间敌手 $\mathcal{A}$，以不可忽略的概率在 ElGamal 算法 CPA 安全模型中攻破 IND 安全目标，即
             $$
-            \begin{aligned}
-            \mathrm{Adv}_\mathcal{B} =& \left| \Pr(\mathrm{output}_\mathcal{B} = \beta) - \frac{1}{2} \right| \\
-            =& \frac{1}{2} \left| \Pr(\mathrm{output}_\mathcal{B} = 0 \mid \beta = 0) - \Pr(\mathrm{output}_\mathcal{B} = 0 \mid \beta = 1) \right| \\
-            =& \frac{1}{2} \left| \Pr(\mathrm{output}_\mathcal{A} = b \mid \beta = 0) - \Pr(\mathrm{output}_\mathcal{A} = b \mid \beta = 1) \right| \\
-            =& \frac{1}{2} \left| \left( \frac{1}{2} \pm \text{non-negl}(\lambda) \right) - \frac{1}{2} \right| \\
-            =& \frac{1}{2} \cdot \text{non-negl}(\lambda) = \text{non-negl}(\lambda)
-            \end{aligned}
+            \mathrm{Adv}_\mathcal{A} = \left| \Pr(\mathrm{output}_\mathcal{A} = b) - \frac{1}{2} \right| = \text{non-negl}(\lambda)
             $$
-        - 则 $\mathcal{B}$ 能以不可忽略的优势打破 DDH 安全性，与假设矛盾，因此 ElGamal 算法满足 IND-CPA 安全性。
-- **证明** $\impliedby$：反证法（安全性归约）
-    - 假设结论错误：DDH 问题不困难，即存在一个概率多项式时间敌手 $\mathcal{B}$，以不可忽略的概率在 DDH 安全模型中攻破 DDH 安全目标，即
-        $$
-        \mathrm{Adv}_\mathcal{B} = \left| \Pr(\mathrm{output}_\mathcal{B} = \beta) - \frac{1}{2} \right| = \text{non-negl}(\lambda)
-        $$
-    - 证明前提错误：构造一个概率多项式时间敌手 $\mathcal{A}$，在 ElGamal 算法 CPA 安全模型中攻破 IND 安全目标。
-        - $\mathcal{A}$ 的输入：$PK = (G, p, g, h=g^s)$ 和 $C^* = (C_1, C_2) = (g^r, M_b\cdot h^r)$
-        - 调用子敌手：$\mathcal{A}$ 将 $(G, p, g, g^s, g^r, C_2/M_0)$ 交给 $\mathcal{B}$，
-            - $b = 0$ 时：$C_2 = M_0 \cdot g^{sr}$，则 $C_2/M_0 = g^{sr}$，与 DDH 问题中取 $\beta = 0$ 等价
-            - $b = 1$ 时：$C_2 = M_1 \cdot g^{sr}$，则 $C_2/M_0 = M_1/M_0 \cdot g^{sr}$，由于 $M_0, M_1$ 均匀分布在 $G$ 中，则 $C_2/M_0$ 也均匀分布在 $G$ 中，与 DDH 问题中取 $\beta = 1$ 等价
-        - $\mathcal{A}$ 的输出：$\mathrm{output}_\mathcal{A} = \begin{cases} 0 & \mathrm{output}_\mathcal{B} = 0 \\ 1 & \mathrm{output}_\mathcal{B} = 1 \end{cases}$
-        - $\mathcal{A}$ 的优势：
+        - 证明前提错误：构造一个概率多项式时间敌手 $\mathcal{B}$，在 DDH 安全模型中攻破 DDH 安全目标。
+            - $\mathcal{B}$ 的输入：$(G, p, g, g^x, g^y, z_\beta)$
+            - 调用子敌手：$\mathcal{B}$ 将 $PK = (G, p, g, h=g^x)$ 交给 $\mathcal{A}$，$\mathcal{A}$ 输入两个消息 $M_0, M_1 \in G$，$\mathcal{B}$ 将挑战密文设置为 $C^{*} = (g^y, z_\beta \cdot M_b)$ 交给 $\mathcal{A}$，则
+                - $\beta = 0$ 时：$C^{*} = (g^y, M_b \cdot g^{xy})$，与 ElGamal 加密 $M_b$ 的密文分布相同，则
+                    $$
+                    \left|\Pr(\mathrm{output}_\mathcal{A}=b\mid \beta=0) - \frac{1}{2}\right| = \left| \Pr(\mathrm{output}_\mathcal{A} = b) - \frac{1}{2} \right| = \text{non-negl}(\lambda)
+                    $$
+
+                    也即 $\Pr(\mathrm{output}_\mathcal{A}=b \mid \beta=0) = \frac{1}{2} \pm \text{non-negl}(\lambda)$
+                - $\beta = 1$ 时：$C^{*} = (g^y, M_b \cdot g^{z})$，由于 $z \leftarrow \mathbb{Z}_p$ 均匀分布，$M_b \cdot g^{z}$ 也均匀分布在 $G$ 中，则密文不包含任何关于 $b$ 的信息，$\Pr(\mathrm{output}_\mathcal{A}=b \mid \beta=1) = \frac{1}{2}$
+            - $\mathcal{B}$ 的输出：$\mathrm{output}_\mathcal{B} = \begin{cases} 0 & \mathrm{output}_\mathcal{A} = b \\ 1 & \mathrm{output}_\mathcal{A} \neq b \end{cases}$
+            - $\mathcal{B}$ 的优势：
+                $$
+                \begin{aligned}
+                \mathrm{Adv}_\mathcal{B} =& \left| \Pr(\mathrm{output}_\mathcal{B} = \beta) - \frac{1}{2} \right| \\
+                =& \frac{1}{2} \left| \Pr(\mathrm{output}_\mathcal{B} = 0 \mid \beta = 0) - \Pr(\mathrm{output}_\mathcal{B} = 0 \mid \beta = 1) \right| \\
+                =& \frac{1}{2} \left| \Pr(\mathrm{output}_\mathcal{A} = b \mid \beta = 0) - \Pr(\mathrm{output}_\mathcal{A} = b \mid \beta = 1) \right| \\
+                =& \frac{1}{2} \left| \left( \frac{1}{2} \pm \text{non-negl}(\lambda) \right) - \frac{1}{2} \right| \\
+                =& \frac{1}{2} \cdot \text{non-negl}(\lambda) = \text{non-negl}(\lambda)
+                \end{aligned}
+                $$
+            - 则 $\mathcal{B}$ 能以不可忽略的优势打破 DDH 安全性，与假设矛盾，因此 ElGamal 算法满足 IND-CPA 安全性。
+    - **必要性证明**（$\impliedby$）：反证法（安全性归约）
+        - 假设结论错误：DDH 问题不困难，即存在一个概率多项式时间敌手 $\mathcal{B}$，以不可忽略的概率在 DDH 安全模型中攻破 DDH 安全目标，即
             $$
-            \begin{aligned}
-            \mathrm{Adv}_\mathcal{A} =& \left| \Pr(\mathrm{output}_\mathcal{A} = b) - \frac{1}{2} \right| \\
-            =& \frac{1}{2} \left| \Pr(\mathrm{output}_\mathcal{A} = 0 \mid b = 0) - \Pr(\mathrm{output}_\mathcal{A} = 0 \mid b = 1) \right| \\
-            =& \frac{1}{2} \left| \Pr(\mathrm{output}_\mathcal{B} = 0 \mid b = 0) - \Pr(\mathrm{output}_\mathcal{B} = 0 \mid b = 1) \right| \\
-            =& \frac{1}{2} \left| \Pr(\mathrm{output}_\mathcal{B} = 0 \mid \beta = 0) - \Pr(\mathrm{output}_\mathcal{B} = 0 \mid \beta = 1) \right| \\
-            =& \mathrm{Adv}_\mathcal{B} = \text{non-negl}(\lambda)
-            \end{aligned}
+            \mathrm{Adv}_\mathcal{B} = \left| \Pr(\mathrm{output}_\mathcal{B} = \beta) - \frac{1}{2} \right| = \text{non-negl}(\lambda)
             $$
-        - 则 $\mathcal{A}$ 能以不可忽略的优势打破 ElGamal 算法的 IND-CPA 安全性，与假设矛盾，因此 DDH 问题困难。
+        - 证明前提错误：构造一个概率多项式时间敌手 $\mathcal{A}$，在 ElGamal 算法 CPA 安全模型中攻破 IND 安全目标。
+            - $\mathcal{A}$ 的输入：$PK = (G, p, g, h=g^s)$ 和 $C^* = (C_1, C_2) = (g^r, M_b\cdot h^r)$
+            - 调用子敌手：$\mathcal{A}$ 将 $(G, p, g, g^s, g^r, C_2/M_0)$ 交给 $\mathcal{B}$，
+                - $b = 0$ 时：$C_2 = M_0 \cdot g^{sr}$，则 $C_2/M_0 = g^{sr}$，与 DDH 问题中取 $\beta = 0$ 等价
+                - $b = 1$ 时：$C_2 = M_1 \cdot g^{sr}$，则 $C_2/M_0 = M_1/M_0 \cdot g^{sr}$，由于 $M_0, M_1$ 均匀分布在 $G$ 中，则 $C_2/M_0$ 也均匀分布在 $G$ 中，与 DDH 问题中取 $\beta = 1$ 等价
+            - $\mathcal{A}$ 的输出：$\mathrm{output}_\mathcal{A} = \begin{cases} 0 & \mathrm{output}_\mathcal{B} = 0 \\ 1 & \mathrm{output}_\mathcal{B} = 1 \end{cases}$
+            - $\mathcal{A}$ 的优势：
+                $$
+                \begin{aligned}
+                \mathrm{Adv}_\mathcal{A} =& \left| \Pr(\mathrm{output}_\mathcal{A} = b) - \frac{1}{2} \right| \\
+                =& \frac{1}{2} \left| \Pr(\mathrm{output}_\mathcal{A} = 0 \mid b = 0) - \Pr(\mathrm{output}_\mathcal{A} = 0 \mid b = 1) \right| \\
+                =& \frac{1}{2} \left| \Pr(\mathrm{output}_\mathcal{B} = 0 \mid b = 0) - \Pr(\mathrm{output}_\mathcal{B} = 0 \mid b = 1) \right| \\
+                =& \frac{1}{2} \left| \Pr(\mathrm{output}_\mathcal{B} = 0 \mid \beta = 0) - \Pr(\mathrm{output}_\mathcal{B} = 0 \mid \beta = 1) \right| \\
+                =& \mathrm{Adv}_\mathcal{B} = \text{non-negl}(\lambda)
+                \end{aligned}
+                $$
+            - 则 $\mathcal{A}$ 能以不可忽略的优势打破 ElGamal 算法的 IND-CPA 安全性，与假设矛盾，因此 DDH 问题困难。
 
 #### ElGamal 加密算法不满足 IND-CCA 安全性
 - **攻击思路**：利用 CCA 安全模型中敌手可以获得除密文之外的任何信息的能力，构造一个敌手 $\mathcal{A}$，在 CCA 安全模型中攻破 ElGamal 算法的 IND-CCA 安全性。

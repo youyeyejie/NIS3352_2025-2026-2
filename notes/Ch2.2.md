@@ -106,45 +106,47 @@
 
 #### BF 基于身份加密算法的 IND-ID-CPA 安全性
 - **定理**：**BDDH 问题困难** + **$H$ 为 RO** $\Rightarrow$ **BF 加密算法 IND-ID-CPA 安全**
-- **思路**：由攻破 IND-ID-CPA 安全性的敌手 $\mathcal{A}$ 来构造解决 BDDH 问题的敌手 $\mathcal{B}$
-- **证明**：安全性归约
-    - **假设结论错误**：BF 加密算法不是 IND-ID-CPA 安全的，即存在一个概率多项式时间敌手 $\mathcal{A}$，以不可忽略的概率在 BF 加密算法 ID-CPA 安全模型中攻破 IND 安全目标，即
-        $$
-        \mathrm{Adv}_\mathcal{A} = \left| \Pr(\mathrm{output}_\mathcal{A} = \beta) - \frac{1}{2} \right| = \text{non-negl}(\lambda)
-        $$
-    - **证明前提错误**：构造一个概率多项式时间敌手 $\mathcal{B}$，在 BDDH 安全模型中攻破 BDDH 安全目标。
-        - $\mathcal{B}$ 的输入：$PG = (G, G_T, N, P, g_T, e), xP, yP, zP, T_\beta$，其中 $x,y,z \leftarrow \mathbb{Z}_N$，$T_0 = (g_T)^{xyz}$，$T_1 \leftarrow G_T$，$\beta \leftarrow \{0,1\}$
-        - $\mathcal{B}$ 的策略：
-            - $\mathcal{B}$ 将 $PK = (PG, Q = xP)$ 发送给 $\mathcal{A}$，并模拟 $\mathcal{A}$ 的环境；设 $\mathcal{A}$ 进行的哈希查询次数为 $Q_H(\lambda)$，加密查询次数为 $Q_E(\lambda)$，则 $\mathcal{B}$ 随机选择 $j \in [1, Q_H(\lambda)]$ 赌 $\mathcal{A}$ 最终输出的消息 $M^{*} = M_j$。
-            - 当 $\mathcal{A}$ 使用 $id_i$ 进行第 $i$ 次**派生私钥查询**时：$\mathcal{B}$ 假设自己的私钥为 $SK = xP$，计算 $SK_{id_i} = xH(id_i) = xPh_{id_i} = h_{id_i}Q$ 返回给 $\mathcal{A}$，并自身记录 $H(id_i) = h_{id_i}P$。
-                - 此时若 $\mathcal{A}$ 要对派生私钥查询进行验证，计算时需要 $H(id_i)$，只能向 $\mathcal{B}$ 查询哈希结果，必然能通过检验
-            - 当 $\mathcal{A}$ 使用 $id_i$ 进行第 $k$ 次**哈希查询**时：
-                - 若 $k = j$ 且 $id_j \notin \{id_i\}$，即 $\mathcal{A}$ 的第 $j$ 次哈希查询的身份 $id_j$ 没有在之前的派生私钥查询中出现过，则 $\mathcal{B}$ 将 $H(id_j) = zP$ 作为自己的哈希输出，并记录 $H(id_j) = zP$。
-                - 若 $k = j$ 且 $id_j \in \{id_i\}$，则重新选择 $j\in [1, Q_H(\lambda)]$，直到满足 $id_j \notin \{id_i\}$。
-                - 若 $k \neq j$，则 $\mathcal{B}$ 查询是否有 $H(id_k)$ 的记录：
-                    - 若有则直接返回
-                    - 若没有则均匀选取 $h_{id_k} \leftarrow \mathbb{Z}_N$ 返回并记录 $H(id_k) = h_{id_k}P$。
-            - 最终当 $\mathcal{A}$ 输出挑战 $(id^*, M_0, M_1)$ 时，若 $id^* = id_j$，则 $\mathcal{B}$ 将 $C_1 = yP, C_2 = T_\beta M_\beta$ 作为挑战密文返回给 $\mathcal{A}$：
-                - 若 $\beta = 1$，则 $C_2 = T_1 M_1$ 是一个随机元素，$\mathcal{A}$ 无法区分 $M_0$ 和 $M_1$，只能随机猜测 $\beta$ 的值，因此 $\Pr(\mathrm{output}_\mathcal{A} = \beta) = \frac{1}{2}$。
-                - 若 $\beta = 0$，则 $C_2 = T_0 M_0 = g_T^{xyz} M_0 = e(P, P)^{xyz} M_0 = e(xP, yP)^{z} M_0 = e(Q, yP)^{z} M_0 = e(Q, H(id^*))^{z} M_0$ 是一个合法的挑战密文，$\mathcal{A}$ 可以以不可忽视概率正确区分 $M_0$ 和 $M_1$，因此 $\Pr(\mathrm{output}_\mathcal{A} = \beta) = \text{non-negl}(\lambda)$。
-        - $\mathcal{B}$ 的输出：
+    - **思路**：由攻破 IND-ID-CPA 安全性的敌手 $\mathcal{A}$ 来构造解决 BDDH 问题的敌手 $\mathcal{B}$
+
+!!! fold info @Pf
+    - **证明**：安全性规约
+        - **假设结论错误**：BF 加密算法不是 IND-ID-CPA 安全的，即存在一个概率多项式时间敌手 $\mathcal{A}$，以不可忽略的概率在 BF 加密算法 ID-CPA 安全模型中攻破 IND 安全目标，即
             $$
-            \mathrm{output}_\mathcal{B} = \begin{cases}
-            0 & \mathrm{output}_\mathcal{A} = 0 \\
-            1 & \mathrm{output}_\mathcal{A} = 1
-            \end{cases}
+            \mathrm{Adv}_\mathcal{A} = \left| \Pr(\mathrm{output}_\mathcal{A} = \beta) - \frac{1}{2} \right| = \text{non-negl}(\lambda)
             $$
-        - $\mathcal{B}$ 的优势：
-            $$
-            \begin{aligned}
-                Adv_{\mathcal{B}} &\geq \Pr\left[
-                \begin{array}{l}
-                (1)\ \mathcal{A} \text{ 成功攻破 IND-ID-CPA 安全目标} \\
-                (2)\ \mathcal{A} \text{ 查询过 } id_j \text{ 的 Hash 值} \\
-                (3)\ \mathcal{B} \text{ 赌对了 } j \text{（即 } id^* = id_j \text{）}
-                \end{array}
-                \right] \\
-                &\geq \text{non-negl}(\lambda) \cdot \text{non-negl}(\lambda) \cdot \frac{1}{Q(\lambda)} \\
-                &= \text{non-negl}(\lambda)
-                \end{aligned}
-            $$
+        - **证明前提错误**：构造一个概率多项式时间敌手 $\mathcal{B}$，在 BDDH 安全模型中攻破 BDDH 安全目标。
+            - $\mathcal{B}$ 的输入：$PG = (G, G_T, N, P, g_T, e), xP, yP, zP, T_\beta$，其中 $x,y,z \leftarrow \mathbb{Z}_N$，$T_0 = (g_T)^{xyz}$，$T_1 \leftarrow G_T$，$\beta \leftarrow \{0,1\}$
+            - $\mathcal{B}$ 的策略：
+                - $\mathcal{B}$ 将 $PK = (PG, Q = xP)$ 发送给 $\mathcal{A}$，并模拟 $\mathcal{A}$ 的环境；设 $\mathcal{A}$ 进行的哈希查询次数为 $Q_H(\lambda)$，加密查询次数为 $Q_E(\lambda)$，则 $\mathcal{B}$ 随机选择 $j \in [1, Q_H(\lambda)]$ 赌 $\mathcal{A}$ 最终输出的消息 $M^{*} = M_j$。
+                - 当 $\mathcal{A}$ 使用 $id_i$ 进行第 $i$ 次**派生私钥查询**时：$\mathcal{B}$ 假设自己的私钥为 $SK = xP$，计算 $SK_{id_i} = xH(id_i) = xPh_{id_i} = h_{id_i}Q$ 返回给 $\mathcal{A}$，并自身记录 $H(id_i) = h_{id_i}P$。
+                    - 此时若 $\mathcal{A}$ 要对派生私钥查询进行验证，计算时需要 $H(id_i)$，只能向 $\mathcal{B}$ 查询哈希结果，必然能通过检验
+                - 当 $\mathcal{A}$ 使用 $id_i$ 进行第 $k$ 次**哈希查询**时：
+                    - 若 $k = j$ 且 $id_j \notin \{id_i\}$，即 $\mathcal{A}$ 的第 $j$ 次哈希查询的身份 $id_j$ 没有在之前的派生私钥查询中出现过，则 $\mathcal{B}$ 将 $H(id_j) = zP$ 作为自己的哈希输出，并记录 $H(id_j) = zP$。
+                    - 若 $k = j$ 且 $id_j \in \{id_i\}$，则重新选择 $j\in [1, Q_H(\lambda)]$，直到满足 $id_j \notin \{id_i\}$。
+                    - 若 $k \neq j$，则 $\mathcal{B}$ 查询是否有 $H(id_k)$ 的记录：
+                        - 若有则直接返回
+                        - 若没有则均匀选取 $h_{id_k} \leftarrow \mathbb{Z}_N$ 返回并记录 $H(id_k) = h_{id_k}P$。
+                - 最终当 $\mathcal{A}$ 输出挑战 $(id^*, M_0, M_1)$ 时，若 $id^* = id_j$，则 $\mathcal{B}$ 将 $C_1 = yP, C_2 = T_\beta M_\beta$ 作为挑战密文返回给 $\mathcal{A}$：
+                    - 若 $\beta = 1$，则 $C_2 = T_1 M_1$ 是一个随机元素，$\mathcal{A}$ 无法区分 $M_0$ 和 $M_1$，只能随机猜测 $\beta$ 的值，因此 $\Pr(\mathrm{output}_\mathcal{A} = \beta) = \frac{1}{2}$。
+                    - 若 $\beta = 0$，则 $C_2 = T_0 M_0 = g_T^{xyz} M_0 = e(P, P)^{xyz} M_0 = e(xP, yP)^{z} M_0 = e(Q, yP)^{z} M_0 = e(Q, H(id^*))^{z} M_0$ 是一个合法的挑战密文，$\mathcal{A}$ 可以以不可忽视概率正确区分 $M_0$ 和 $M_1$，因此 $\Pr(\mathrm{output}_\mathcal{A} = \beta) = \text{non-negl}(\lambda)$。
+            - $\mathcal{B}$ 的输出：
+                $$
+                \mathrm{output}_\mathcal{B} = \begin{cases}
+                0 & \mathrm{output}_\mathcal{A} = 0 \\
+                1 & \mathrm{output}_\mathcal{A} = 1
+                \end{cases}
+                $$
+            - $\mathcal{B}$ 的优势：
+                $$
+                \begin{aligned}
+                    Adv_{\mathcal{B}} &\geq \Pr\left[
+                    \begin{array}{l}
+                    (1)\ \mathcal{A} \text{ 成功攻破 IND-ID-CPA 安全目标} \\
+                    (2)\ \mathcal{A} \text{ 查询过 } id_j \text{ 的 Hash 值} \\
+                    (3)\ \mathcal{B} \text{ 赌对了 } j \text{（即 } id^* = id_j \text{）}
+                    \end{array}
+                    \right] \\
+                    &\geq \text{non-negl}(\lambda) \cdot \text{non-negl}(\lambda) \cdot \frac{1}{Q(\lambda)} \\
+                    &= \text{non-negl}(\lambda)
+                    \end{aligned}
+                $$

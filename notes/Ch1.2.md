@@ -134,6 +134,8 @@
     $$
 
     则 $\mathcal{A}$ 以不可忽略的概率查询过 $(R^{*}, M^{*})$ 的 Hash 值。
+
+!!! fold info @Pf
     - **证明**：反证法，假设 $\mathcal{A}$ 没有查询过 $(R^{*}, M^{*})$ 的 Hash 值，则在 $H$ 为 RO 假设下，$H(R^{*}, M^{*})$ 对 $\mathcal{A}$ 是 $\mathbb{Z}_{p}$ 中均匀随机的元素，因此 $h^{H(R^{*}, M^{*})}$ 对 $\mathcal{A}$ 是 $G$ 中均匀随机的元素。则 $\mathcal{A}$ 猜对 $z^{*} \in \mathbb{Z}_{p}$ 满足
         $$
         h^{H(R^{*}, M^{*})}=g^{z^{*}} \cdot (R^{*})^{-1}
@@ -142,6 +144,8 @@
         的概率为 $\frac{1}{|G|}=\frac{1}{p}=negl(\lambda)$，与假设矛盾。
 - **引理1（Fiat-Shamir 转换）**：**Schnorr 身份证明协议是 UI-PA 安全的** + **$H$ 为 RO** $\implies$ **Schnorr 签名算法是 EUF-CMA 安全的**
     - **思路**：将 $\mathcal{A}$ 作为 $\mathcal{B}$ 的子算法，为 $\mathcal{A}$ 提供合法的输入，以及返回合法的签名查询。利用 $\mathcal{A}$ 的输出结果帮助 $\mathcal{B}$ 在 UI-PA 中的输出正确的结果。
+
+!!! fold info @Pf
     - **证明**：使用反证法（安全性规约）
         ![](image/image-10.png)
         - **假设结论错误**：Schnorr 签名算法不是 EUF-CMA 安全的，即存在 PPT 敌手 $\mathcal{A}$ 以不可忽略的概率攻破 Schnorr 签名算法的 EUF-CMA 安全性。
@@ -176,6 +180,8 @@
 
 ##### Schnorr 身份证明协议的 UI-PA 安全性证明
 - **引理 2**：**DL 问题困难** $\implies$ **Schnorr 身份证明协议是 UI-PA 安全的**
+
+!!! fold info @Pf
     - **证明**：安全性归约，由攻破 UI-PA 安全性的敌手 $\mathcal{A}$ 来构造解决 DL 问题的敌手 $\mathcal{B}$。
         ![](image/image-11.png)
         - **假设结论错误**：Schnorr 身份证明协议不是 UI-PA 安全的，即存在 PPT 敌手 $\mathcal{A}$ 以不可忽略的概率攻破 Schnorr 身份证明协议的 UI-PA 安全性，即
@@ -273,4 +279,4 @@ $$
 - DSA 为上述算法在大整数循环群 $G=\mathbb{Z}_N^*$ 的 $p$ 阶子群上的具体实现，其中 $F: G \to \mathbb{Z}_p$ 定义为 $F(R) = R \bmod p$
 - ECDSA 为上述算法在椭圆曲线循环群 $G$ 上的具体实现，其中 $F: G \to \mathbb{Z}_p$ 定义为 $F(R=(x_R, y_R)) = x_R \bmod p$。
 
-> 基于上述具体 $F$ 函数的 DSA/ECDSA 签名算法的安全性没有基于标准困难问题的安全性证明，但也不存在有效的攻击方法，因此在实际应用中被广泛使用。
+> 基于上述具体 $F$ 函数的 DSA / ECDSA 签名算法的安全性没有基于标准困难问题的安全性证明，但也不存在有效的攻击方法，因此在实际应用中被广泛使用。
