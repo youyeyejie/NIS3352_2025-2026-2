@@ -92,7 +92,7 @@
     - **输出**：$\mathbf{s}$
     - **计算性 LWE 问题困难**：任意 PPT 敌手的优势是可忽略的，即
         $$
-        \left|\Pr(\mathrm{output}=\mathbf{s}) - \frac{1}{q^{n}}\right| = \mathrm{negl}(\lambda)
+        \mathrm{Adv} = \left|\Pr(\mathrm{output}=\mathbf{s}) - \frac{1}{q^{n}}\right| = \mathrm{negl}(\lambda)
         $$
     - 直觉：定义格 $\mathcal{L}(\mathbf{A})=\{\mathbf{x} \in \mathbb{Z}^{m} \mid \mathbf{x}=\mathbf{A}^{T} \mathbf{s} \pmod q, \mathbf{s} \in \mathbb{Z}_{q}^{n}\}$，则 $\mathbf{z}$ 是 $\mathcal{L}(\mathbf{A})$ 中某个格点附近的一个点，$\mathbf{e}$ 是噪声。
         ![](image/image-18.png)
@@ -101,7 +101,7 @@
     - **输出**：$\beta$
     - **判定性 LWE 问题困难**：任意 PPT 敌手的优势是可忽略的，即
         $$
-        \left|\Pr(\mathrm{output}=\beta) - \frac{1}{2}\right| = \mathrm{negl}(\lambda)
+        \mathrm{Adv} = \left|\Pr(\mathrm{output}=\beta) - \frac{1}{2}\right| = \mathrm{negl}(\lambda)
         $$
     - ![](image/image-17.png)
 - **定理（Regev05）**：**判定性 LWE 问题困难** $\iff$ **计算性 LWE 问题困难**
@@ -161,60 +161,89 @@
 
 #### 1 比特 Regev 算法的 IND-CPA 安全性
 - **定理**：**判定性 LWE 问题困难** $\implies$ **1 比特 Regev 算法是 IND-CPA 安全的**
+    - **思路**：正向证明，给定任意 PPT 敌手 $\mathcal{A}$，证明其攻破 IND-CPA 安全性的优势是可忽略的
+        $$
+        \mathrm{Adv}_{\mathcal{A}}=\left|\Pr(\mathrm{output}=b)-\frac{1}{2}\right|=\mathrm{negl}(\lambda)
+        $$ 
 
 !!! fold info @Proof
-    - **证明**：正向证明，给定任意 PPT 敌手 $\mathcal{A}$，证明其攻破 IND-CPA 安全性的优势是可忽略的
-        $$
-        Adv_{A}=\left|\Pr(output=b)-\frac{1}{2}\right|=\mathrm{negl}(\lambda)
-        $$ 采用混合论证（Hybrid Arguments）与三角不等式。
-        - 定义混合游戏:
+    - **证明**：采用混合论证（Hybrid Arguments）与三角不等式。
+        ![](image/image-20.png)
+        - **定义混合游戏**：
             - **Game 0**：IND-CPA 安全模型
-                1. 挑战者执行 $\mathrm{Gen}: A\leftarrow\mathbb{Z}_{q}^{n\times m}$，$s\leftarrow\mathbb{Z}_{q}^{n}$，$e\leftarrow[-B_{\chi},B_{\chi}]^{m}$，$h:=A^\top s+e$，输出 $PK=(A,h)$
+                1. 挑战者执行 $\mathrm{Gen}: \mathbf{A}\leftarrow\mathbb{Z}_{q}^{n\times m}$，$\mathbf{s}\leftarrow\mathbb{Z}_{q}^{n}$，$\mathbf{e}\leftarrow[-B_{\chi},B_{\chi}]^{m}$，$\mathbf{h}:=\mathbf{A}^\top \mathbf{s}+\mathbf{e}$，输出 $PK=(\mathbf{A},\mathbf{h})$
                 2. 敌手提交 $(M_0,M_1)$
-                3. 挑战者随机选 $b\leftarrow\{0,1\}$，加密 $C^*\leftarrow \mathrm{Enc}(PK,M_b): r\leftarrow\{0,1\}^m$，$c_1:=Ar$，$c_2:=r^Th+M_b\cdot\lfloor q/2\rceil$，输出 $C^*=(c_1,c_2)$
+                3. 挑战者随机选 $b\leftarrow\{0,1\}$，加密 $C^*\leftarrow \mathrm{Enc}(PK,M_b): \mathbf{r}\leftarrow\{0,1\}^m$，$\mathbf{c}_1:=\mathbf{A}\mathbf{r}$，$c_2:=r^Th+M_b\cdot\lfloor q/2\rceil$，输出 $C^*=(\mathbf{c}_1,c_2)$
                 4. 敌手输出猜测结果
             - **Game 1**：$PK$ 中的 $h\leftarrow\mathbb{Z}_{q}^{m}$
-                1. 挑战者执行 $\mathrm{Gen}: A\leftarrow\mathbb{Z}_{q}^{n\times m}$，$h\leftarrow\mathbb{Z}_{q}^{m}$，输出 $PK=(A,h)$
+                1. **密钥生成步骤**改为：均匀选取 $\mathbf{A}\leftarrow\mathbb{Z}_{q}^{n\times m}$，$\mathbf{h}\leftarrow\mathbb{Z}_{q}^{m}$，输出 $PK=(\mathbf{A},\mathbf{h})\leftarrow\mathbb{Z}_{q}^{n\times m}\times\mathbb{Z}_{q}^{m}$
                 2. 后续步骤与 Game 0 一致
             - **Game 2**：$C^*\leftarrow\mathbb{Z}_{q}^{n}\times\mathbb{Z}_{q}$
-挑战者执行Gen与Game 1一致；
-加密步骤改为直接均匀选取 $c_1\leftarrow\mathbb{Z}_{q}^{n}$，$c_2\leftarrow\mathbb{Z}_{q}$，$C^*=(c_1,c_2)$；敌手输出猜测结果。
+                1. 前序步骤与 Game 1 一致
+                2. **加密步骤**改为：均匀选取 $\mathbf{c}_1\leftarrow\mathbb{Z}_{q}^{n}$，$c_2\leftarrow\mathbb{Z}_{q}$，$C^*=(\mathbf{c}_1,c_2)\leftarrow\mathbb{Z}_{q}^{n}\times\mathbb{Z}_{q}$
+                3. 敌手输出猜测结果
+        - **混合游戏性质**：
+            1. Game 0 与 Game 1 的区别只在于 $PK$ 中的 $\mathbf{h}$ 的生成：
+                - Game 0 中 $\mathbf{h}=\mathbf{A}^{\top}\mathbf{s}+\mathbf{e}$
+                - Game 1 中 $\mathbf{h}\leftarrow\mathbb{Z}_{q}^{m}$
+            2. 由**引理1**：Game 0 与 Game 1 不可区分，即
+                $$
+                |\Pr(\mathrm{output}=b\mid \text{Game 0}) - \Pr(\mathrm{output}=b\mid \text{Game 1})| = \mathrm{negl}(\lambda)
+                $$
+            2. Game 1 与 Game 2 的区别只在于密文 $C^{*}=(\mathbf{c}_{1},c_{2})$ 的生成：
+                - Game 1 中 $(\mathbf{c}_{1},c_{2})=(\mathbf{A}\mathbf{r},\mathbf{r}^{\top}\mathbf{h}+M_b\cdot\lfloor q/2\rceil)$
+                - Game 2 中 $(\mathbf{c}_1,c_2)\leftarrow\mathbb{Z}_{q}^{n}\times\mathbb{Z}_{q}$
+            3. 由**引理2（剩余哈希引理）推论**：Game 1 与 Game 2 不可区分，即
+                $$
+                |\Pr(\mathrm{output}=b\mid \text{Game 1}) - \Pr(\mathrm{output}=b\mid \text{Game 2})| = \mathrm{negl}(\lambda)
+                $$
+            4. Game 2 中，$C^{*}=(\mathbf{c}_{1},c_{2})$ 中已经不含 $b$ 的信息，因此
+                $$
+                \Pr(\mathrm{output}=b\mid \text{Game 2})=\frac{1}{2}
+                $$
+        - **由三角不等式**：
+            $$
+            \begin{aligned}
+            \mathrm{Adv}_{A} =& \left| \Pr(\mathrm{output}=b\mid \text{Game 0}) - \frac{1}{2} \right| \\
+            \leq& \left| \Pr(\mathrm{output}=b\mid \text{Game 0}) - \Pr(\mathrm{output}=b\mid \text{Game 1}) \right|+ \\
+            & \left| \Pr(\mathrm{output}=b\mid \text{Game 1}) - \Pr(\mathrm{output}=b\mid \text{Game 2}) \right|+ \\
+            & \left| \Pr(\mathrm{output}=b\mid \text{Game 2}) - \frac{1}{2} \right| \\
+            =& \mathrm{negl}(\lambda) + \mathrm{negl}(\lambda) + 0 \\
+            =& \mathrm{negl}(\lambda)
+            \end{aligned}
+            $$
+        - 因此 $\mathrm{Adv}_{A}=\mathrm{negl}(\lambda)$，得证 IND-CPA 安全性。
 
-Game 2中，$C^{*}=(c_{1},c_{2})$ 中已经不含$b$的信息，因此
-$$Pr[output =b\text{ in Game 2}]=1/2$$
+- **引理 1**：**判定性 LWE 问题困难** $\implies$ Game 0 与 Game 1 不可区分，即
+    $$
+    |\Pr(\mathrm{output}=b\mid \text{Game 0}) - \Pr(\mathrm{output}=b\mid \text{Game 1})| = \mathrm{negl}(\lambda)
+    $$
+    - 证明思路：采用反证法（安全性归约），由区分 Game 0 与Game 1 的敌手 $\mathcal{A}$ 来构造解决判定性 LWE 问题的敌手 $\mathcal{B}$。
+- **引理 2**：
+    - **剩余哈希引理**（Leftover Hash Lemma）: 当 $q$ 为素数且 $m\geq n\log q+2\log(1/\epsilon)$ 时，任意敌手区分下面两个分布的优势为可忽略的
+        $$
+        (\mathbf{H},\mathbf{Hr})\approx_s(\mathbf{H},\mathbf{u})
+        $$
 
-进一步推导:
-$$\begin{aligned} Adv_{A} & =| Pr[ output =b\text{ in Game 0}] -1 / 2 | \\ & \leq negl(\lambda)+| Pr[ output =b\text{ in Game 1}] -1 / 2 | \\ &\leq negl(\lambda)+| Pr[ output =b\text{ in Game 1}]-Pr[output =b\text{ in Game 2}]| +| Pr[ output =b\text{ in Game 2}]-1 / 2 | \end{aligned}$$
+        其中 $\mathbf{H}\leftarrow\mathbb{Z}_{q}^{n\times m}$，$\mathbf{r}\leftarrow\{0,1\}^{m}$，$\mathbf{u}\leftarrow\mathbb{Z}_{q}^{n}$。
+    - **推论**：当 $q$ 为素数且 $m\geq2n\cdot\log q$ 时，任意敌手区分下面两个分布的优势为可忽略的
+        $$
+        \begin{pmatrix}\begin{pmatrix}\mathbf{A} \\ \mathbf{h}^\top \end{pmatrix},\begin{pmatrix}\mathbf{Ar} \\ \mathbf{h}^\top\mathbf{r} \end{pmatrix} \end{pmatrix}
+        \approx_s
+        \begin{pmatrix}\begin{pmatrix}\mathbf{A} \\ \mathbf{h}^\top \end{pmatrix},\begin{pmatrix}\mathbf{u}_1 \\ \mathbf{u}_2 \end{pmatrix} \end{pmatrix}
+        $$
 
-Game 1 与Game 2 的差别只在于密文 $C^{*}=(c_{1},c_{2})$ 的生成:
-Game 1中: $(c_{1},c_{2})=(Ar,r^{\top}h+M_{b}\cdot\lfloor q/2\rceil)$；
-Game 2 中: $(c_1,c_2)\leftarrow\mathbb{Z}_{q}^{n}\times\mathbb{Z}_{q}$。
+        其中 $\mathbf{A}\leftarrow\mathbb{Z}_{q}^{n\times m}$，$\mathbf{h}\leftarrow\mathbb{Z}_{q}^{m}$，$\mathbf{r}\leftarrow\{0,1\}^{m}$，$\mathbf{u}_{1}\leftarrow\mathbb{Z}_{q}^{n}$，$\mathbf{u}_{2}\leftarrow\mathbb{Z}_{q}$。
 
-**引理1**:判定性LWE问题困难 $\Rightarrow$ $|Pr[output =b\text{ in Game 0}] - Pr[output =b\text{ in Game 1}]| = negl(\lambda)$
-引理1的证明:采用反证法，即安全性归约，由区分Game 0 与Game 1 的敌手$A$来构造解决判定性LWE问题的敌手$B$。
-
-#### 重要技术工具:剩余哈希引理(Leftover Hash Lemma)
-剩余哈希引理(Leftover Hash Lemma): 当$q$为素数且$m\geq n\log q+2\log(1/\epsilon)$ 时，任意敌手区分下面两个分布的优势为可忽略的
-$$(H,Hr)\approx_s(H,u),$$
-其中 $H\leftarrow\mathbb{Z}_{q}^{n\times m}$，$r\leftarrow\{0,1\}^{m}$，$u\leftarrow\mathbb{Z}_{q}^{n}$。
-
-推论:当$q$为素数且 $m\geq2n\cdot\log q$ 时，
-$$(A,h,Ar,r^{\top}h)\approx_s(A,h,u_{1},u_{2}),$$
-其中 $A\leftarrow\mathbb{Z}_{q}^{n\times m}$，$h\leftarrow\mathbb{Z}_{q}^{m}$，$r\leftarrow\{0,1\}^{m}$，$u_{1}\leftarrow\mathbb{Z}_{q}^{n}$，$u_{2}\leftarrow\mathbb{Z}_{q}$。
-
-因此 $|Pr[output =b\text{ in Game 1}] - Pr[output =b\text{ in Game 2}]|=negl(\lambda)$。
-
-### Regev算法($\ell$比特):IND-CPA安全性
-定理:判定性LWE问题困难$\Rightarrow$ Regev算法($\ell$比特)是IND-CPA安全的。
-
-#### 证明思想:
-采用混合论证(Hybrid Arguments)，结合剩余哈希引理与LWE假设。
-
-- **Game 0** (IND-CPA安全模型) 中: $H=A^{\top}S+E$，$(c_{1},c_{2})=(Ar,r^{\top}H+M_b\cdot\lfloor q/2\rceil)$
-- **Game 1** 中: $H\leftarrow\mathbb{Z}_{q}^{m\times\ell}$
-- **Game 2** 中: $c_{1}\leftarrow\mathbb{Z}_{q}^{n}$，$c_{2}\leftarrow\mathbb{Z}_{q}^{1\times\ell}$
-
-通过LWE假设（每次换$H$的第$i$列，共混合论证$\ell$次）证明Game 0与Game 1不可区分；通过剩余哈希引理证明Game 1与Game 2不可区分，最终得证IND-CPA安全性。
+#### $\ell$ 比特 Regev 算法的 IND-CPA 安全性
+- **定理**：**判定性 LWE 问题困难** $\implies$ **$\ell$ 比特 Regev 算法是 IND-CPA 安全的**
+    - 思路：采用混合论证，结合剩余哈希引理与 LWE 假设。
+        - 混合论证：
+            - **Game 0**（IND-CPA 安全模型）中：$\mathbf{H}=\mathbf{A}^{\top}\mathbf{S}+\mathbf{E}$，$\mathbf{c}_1=\mathbf{A}\mathbf{r}$，$\mathbf{c}_2=\mathbf{r}^{\top}\mathbf{H}+\mathbf{M}\cdot\lfloor q/2\rceil$
+            - **Game 1** 中：$\mathbf{H}\leftarrow\mathbb{Z}_{q}^{m\times\ell}$
+            - **Game 2** 中：$\mathbf{c}_{1}\leftarrow\mathbb{Z}_{q}^{n}$，$\mathbf{c}_{2}\leftarrow\mathbb{Z}_{q}^{1\times\ell}$
+        - 通过 LWE 假设（每次换 $H$ 的第 $i$ 列，共混合论证 $\ell$ 次）证明 Game 0 与 Game 1不可区分。
+        - 通过剩余哈希引理证明 Game 1与 Game 2不可区分，最终得证 IND-CPA 安全性。
 
 ### SIS 困难问题与 GPV 签名算法
 #### SIS 问题（Short Integer Solution）
@@ -233,60 +262,43 @@ $$(A,h,Ar,r^{\top}h)\approx_s(A,h,u_{1},u_{2}),$$
         2. 对于 SIS 问题，$m$ 越大越容易，$n$ 越大越困难。
     - 直觉：定义格 $\mathcal{L}(\mathbf{A})=\{\mathbf{x}\in\mathbb{Z}^{m} \mid \mathbf{Ax}\equiv\mathbf{0}\pmod q\}$，SIS 问题要求找到 $\mathcal{L}(\mathbf{A})$ 中一个非零的短向量。
         ![](image/image-19.png)
-- **定理**：如果 $m\cdot B_{\chi}\cdot B_{s}<q/4$，则**判定性 LWE 问题 $(n,m,q,\chi)$ 困难** $\implies$ **SIS 问题 $(n,m,q,B_{s})$ 困难**
-    - 证明：由解决 SIS 问题的敌手 $\mathcal{A}$ 来构造解决判定性LWE问题的敌手 $\mathcal{B}$。
+- **定理**：如果 $m\cdot B_{\chi}\cdot B_{s}<q/4$，则 **判定性 LWE 问题 $(n,m,q,\chi)$ 困难** $\implies$ **SIS 问题 $(n,m,q,B_{s})$ 困难**
+    - 证明：由解决 SIS 问题的敌手 $\mathcal{A}$ 来构造解决判定性 LWE 问题的敌手 $\mathcal{B}$。
 
-### 重要技术工具:原像可采样函数PSF (Preimage Sampleable Function)
-PSF 参数:$(n,m,q,B)$
-① **矩阵A的带陷门采样算法**$(A,td)\leftarrow SampleA(1^{\lambda})$:
-矩阵$A$在 $\mathbb{Z}_{q}^{n\times m}$ 上均匀分布，$td$为陷门信息(trapdoor)，定义函数
-$$f_{A}:\mathbb{Z}_{q}^{m}\to\mathbb{Z}_{q}^{n}$$
-$$x\mapsto y=Ax$$
+#### 原像可采样函数 PSF（Preimage Sampleable Function）
+- PSF 参数：$(n,m,q,B)$
+- **矩阵 A 的带陷门采样算法**：$(\mathbf{A},td)\leftarrow \mathrm{SampleA}(1^{\lambda})$
+    - 矩阵 $\mathbf{A}$ 在 $\mathbb{Z}_{q}^{n\times m}$ 上均匀分布，$td$ 为陷门信息（trapdoor）
+    - 定义函数
+        $$
+        \begin{aligned}
+        f_{A}:\mathbb{Z}_{q}^{m}&\to\mathbb{Z}_{q}^{n} \\
+        \mathbf{x} &\mapsto \mathbf{Ax}
+        \end{aligned}
+        $$
+- **正向采样算法**：$(\mathbf{x}\in\mathbb{Z}_{q}^{m},\mathbf{y}\in\mathbb{Z}_{q}^{n})\leftarrow \mathrm{SampleTuple}(\mathbf{A})$
+    - 向量 $\mathbf{x}$ 满足 $\mathbf{x}\in[-B,B]^{m}$
+    - 向量 $\mathbf{y}$ 满足 $\mathbf{y}=\mathbf{A}\mathbf{x}$ 且在 $\mathbb{Z}_{q}^{n}$ 上均匀分布
+- **原像采样算法**：$\mathbf{x}\in\mathbb{Z}_{q}^{m}\leftarrow \mathrm{SamplePre}(td,\mathbf{A},\mathbf{y}\in\mathbb{Z}_{q}^{n})$:
+    - 向量 $\mathbf{x}$ 满足 $\mathbf{x}\in[-B,B]^{m}$ 且 $\mathbf{Ax}=\mathbf{y}$
+- **关键性质**（GPV08）：下面两种 $(\mathbf{x}\in\mathbb{Z}_{q}^{m},\mathbf{y}\in\mathbb{Z}_{q}^{n})$ 的分布一样:
+    - $(\mathbf{x}\in\mathbb{Z}_{q}^{m},\mathbf{y}\in\mathbb{Z}_{q}^{n})\leftarrow \mathrm{SampleTuple}(\mathbf{A})$
+    - 先均匀选取 $\mathbf{y}\leftarrow\mathbb{Z}_{q}^{n}$，再调用 $\mathbf{x}\leftarrow \mathrm{SamplePre}(td,\mathbf{A},\mathbf{y})$
 
-② **正向采样算法** $(x\in\mathbb{Z}_{q}^{m},y\in\mathbb{Z}_{q}^{n})\leftarrow SampleTuple(A)$:
-向量 $x$ 满足 $x\in[-B,B]^{m}$，向量 $y$ 满足 $y=Ax$ 且在 $\mathbb{Z}_{q}^{n}$ 上均匀分布。
+#### GPV 数字签名算法（Gentry-Peikert-Vaikuntanathan）
+- 组件：
+    1. PSF：参数 $(n,m,q,B)$
+    2. Hash Function $H:\{0,1\}^{*}\to\mathbb{Z}_{q}^{n}$
+- **密钥生成算法** $(PK,SK)\leftarrow \mathrm{Gen}(1^{\lambda})$：
+    1. 调用 $(\mathbf{A},td)\leftarrow \mathrm{SampleA}(1^{\lambda})$，其中 $\mathbf{A}$ 在 $\mathbb{Z}_{q}^{n\times m}$ 上均匀分布
+    2. 输出 $PK=\mathbf{A}$，$SK=td$
+- **签名算法** $\sigma\leftarrow \mathrm{Sign}(SK,M)$：消息空间为 $\mathbb{M}=\{0,1\}^{*}$
+    1. 计算 $H(M)\in\mathbb{Z}_{q}^{n}$
+    2. 调用并输出 $\sigma\in\mathbb{Z}_{q}^{m}\leftarrow \mathrm{SamplePre}(td,\mathbf{A},H(M))$
+- **验证算法** $0/1\leftarrow \mathrm{Verify}(PK,M,\sigma)$：
+    1. 验证  $\sigma\in[-B,B]^{m} \land \mathbf{A}\sigma\equiv H(M) \pmod{q}$
+    2. 如果验证通过，输出 $1$；否则输出 $0$
 
-③ **原像采样算法** $x\in\mathbb{Z}_{q}^{m}\leftarrow SamplePre(td,A,y\in\mathbb{Z}_{q}^{n})$:
-向量 $x$ 满足(1) $x\in[-B,B]^{m}$ (2) $Ax=y$。
-
-**关键性质**([GPV08]):下面两种 $(x\in\mathbb{Z}_{q}^{m},y\in\mathbb{Z}_{q}^{n})$ 的分布一样:
-- $(x\in\mathbb{Z}_{q}^{m},y\in\mathbb{Z}_{q}^{n})\leftarrow SampleTuple(A)$
-- 先均匀选取 $y\leftarrow\mathbb{Z}_{q}^{n}$，再调用$x\leftarrow SamplePre(td,A,y)$。
-
-### GPV 数字签名算法(Gentry-Peikert-Vaikuntanathan)
-组件:(1) PSF:参数 $(n,m,q,B)$ + (2) Hash Function $H:\{0,1\}^{*}\to\mathbb{Z}_{q}^{n}$
-
-**密钥生成算法**$(PK,SK)\leftarrow Gen(1^{\lambda})$:
-① 调用$(A,td)\leftarrow SampleA(1^{\lambda})$，其中$A$在 $\mathbb{Z}_{q}^{n\times m}$ 上均匀分布
-② 输出$PK=A$，$SK=td$
-
-**签名算法**$\sigma\leftarrow Sign(SK,M)$:消息空间为 $\mathbb{M}=\{0,1\}^{*}$
-① 计算 $H(M)\in\mathbb{Z}_{q}^{n}$
-② 调用并输出$\sigma\in\mathbb{Z}_{q}^{m}\leftarrow SamplePre(td,A,H(M)\in\mathbb{Z}_{q}^{n})$
-
-**验证算法**$0/1\leftarrow Verify(PK,M,\sigma)$:
-① 验证$\sigma\in[-B,B]^{m} \land A\sigma\equiv H(M) \pmod{q}$
-② 如果验证通过，输出$1$ ;否则输出$0$
-
-### GPV 数字签名算法:EUF-CMA安全性
-定理:
-SIS问题$(n,m,q,B_{s}=2B)$困难 + $H$为随机谕言机(RO) $\Rightarrow$ GPV签名算法是EUF-CMA安全的。
-
-#### SIS问题$(n,m,q,B_s)$
-$n,m$为整数，$q$为整数，$B_{s}$为整数。均匀选取 $A\leftarrow\mathbb{Z}_{q}^{n\times m}$。
-输入:$A$
-输出: $x\in\mathbb{Z}_{q}^{m}$ 满足(1) $Ax=0\in\mathbb{Z}_{q}^{n}$ (2) $x\neq0$ (3) $x\in[-B_s,B_s]^{m}$
-$$Adv=Pr[\text{find such }x]$$
-
-#### EUF-CMA安全模型
-挑战者生成 $(PK,SK)\leftarrow Gen$，将$PK$发送给敌手；敌手可多次进行签名查询:提交$M_i$，挑战者返回$\sigma_i\leftarrow Sign(SK,M_i)$；最终敌手输出$(M^*,\sigma^*)$。
-$$Adv=Pr\left\{\begin{array}{l}(1) M^{*}\notin\{M_{i}\} \\ (2) Verify(PK,M^{*},\sigma^{*})=1\end{array}\right\}$$
-
-#### 证明:安全性规约
-($\Rightarrow$):由攻破EUF-CMA安全性的敌手$A$来构造解决SIS问题的敌手$B$。
-
-## 总结:基于格的密码算法
-- 格理论与LWE困难问题: 计算性LWE问题和判定性LWE问题等价(多项式时间内规约)
-- Regev加密算法:IND-CPA安全性，剩余哈希引理
-
-谢谢!
+#### GPV 数字签名算法的 EUF-CMA安全性
+- **定理**：**SIS 问题 $(n,m,q,B_{s}=2B)$ 困难** + **$\bm{H}$ 为 RO** $\implies$ **GPV 签名算法 EUF-CMA 安全**
+    - 证明：安全性规约，由攻破 EUF-CMA 安全性的敌手 $\mathcal{A}$ 来构造解决 SIS 问题的敌手 $\mathcal{B}$。
