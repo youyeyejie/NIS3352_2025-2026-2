@@ -108,7 +108,7 @@
 - **定理**：**BDDH 问题困难** + **$\bm{H}$ 为 RO** $\Rightarrow$ **BF 加密算法 IND-ID-CPA 安全**
     - **思路**：由攻破 IND-ID-CPA 安全性的敌手 $\mathcal{A}$ 来构造解决 BDDH 问题的敌手 $\mathcal{B}$
 
-!!! fold info @Pf
+!!! fold info @Proof
     - **证明**：安全性规约
         - **假设结论错误**：BF 加密算法不是 IND-ID-CPA 安全的，即存在一个概率多项式时间敌手 $\mathcal{A}$，以不可忽略的概率在 BF 加密算法 ID-CPA 安全模型中攻破 IND 安全目标，即
             $$

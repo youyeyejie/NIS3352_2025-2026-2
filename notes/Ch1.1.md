@@ -120,7 +120,7 @@
         $$
 - **IND-CPA 安全性的合理性**：公钥加密算法的 **IND-CPA 安全性** $\implies$ **SKH-PA/PH-PA/PFbH-PA 安全性**
 
-!!! fold info @Pf
+!!! fold info @Proof
     以 SKH-PA 安全性为例，采用反证法（**安全性归约**）
 
     - **假设结论错误**：算法不是 SKH-PA 安全的，即存在一个概率多项式敌手 $\mathcal{A}$，以不可忽略的概率在 PA 安全模型中攻破 SKH 安全目标，即
@@ -167,7 +167,7 @@
     $$
 - **IND-CPA 与 IND-mCPA 的等价性**：公钥加密算法的 **IND-CPA 安全性** $\iff$ **IND-mCPA 安全性**
 
-!!! fold info @Pf
+!!! fold info @Proof
     - **必要性易证**（$\impliedby$）：IND-CPA 是 IND-mCPA $Q=1$ 的特殊情况
     - **充分性证明**（$\implies$）：采用混合论证（Hybrid Arguments）与三角不等式，核心思路是在全加密 $M_0^{(j)}$ 和全加密 $M_1^{(j)}$ 两个极端场景之间，插入一系列混合场景（Hybrid），证明相邻混合场景的不可区分性，最终推导出两个极端场景的不可区分性。
         1. **定义两个极端游戏**（Game）：设敌手发起 $Q=\mathrm{poly}(\lambda)$ 次挑战，定义两个基础游戏：
@@ -286,7 +286,7 @@
 #### ElGamal 加密算法的 IND-CPA 安全性
 - **定理**：**DDH 问题困难** $\iff$ **ElGamal 算法是 IND-CPA 安全的**
 
-!!! fold info @Pf
+!!! fold info @Proof
     - **充分性证明**（$\implies$）：反证法（安全性归约）
         - 假设结论错误：ElGamal 算法不是 IND-CPA 安全的，即存在一个概率多项式时间敌手 $\mathcal{A}$，以不可忽略的概率在 ElGamal 算法 CPA 安全模型中攻破 IND 安全目标，即
             $$
