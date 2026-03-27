@@ -130,7 +130,7 @@
 ##### Schnorr 签名算法的 EUF-CMA 安全性
 - **断言1**：如果在数字签名的 EUF-CMA 安全模型下，存在攻击者 $\mathcal{A}$ 以不可忽略的概率攻破 Schnorr 签名。设 $\mathcal{A}$ 的输出为 $(M^{*}, \sigma^{*}=(R^{*}, z^{*}))$，即
     $$
-    Adv_{\mathcal{A}}=Pr\left(output _{\mathcal{A}}=(M^{*}, \sigma^{*})\left| h^{H(R^{*}, M^{*})} \cdot R^{*}=g^{z^{*}}\right.\right)=\text{non-negl}(\lambda)
+    \mathrm{Adv}_{\mathcal{A}}=Pr\left(output _{\mathcal{A}}=(M^{*}, \sigma^{*})\left| h^{H(R^{*}, M^{*})} \cdot R^{*}=g^{z^{*}}\right.\right)=\text{non-negl}(\lambda)
     $$
 
     则 $\mathcal{A}$ 以不可忽略的概率查询过 $(R^{*}, M^{*})$ 的 Hash 值。
@@ -165,7 +165,7 @@
             - **$\mathcal{B}$ 的优势**：
                 $$
                 \begin{aligned}
-                Adv_{\mathcal{B}} &\geq \Pr\left[
+                \mathrm{Adv}_{\mathcal{B}} &\geq \Pr\left[
                 \begin{array}{l}
                 (1)\ \mathcal{A} \text{ 成功攻破 Schnorr 签名算法的 EUF-CMA 安全性} \\
                 (2)\ \mathcal{A} \text{ 查询过 } (R^{*}, M^{*}) \text{ 的 Hash 值} \\
@@ -186,7 +186,7 @@
         ![](image/image-11.png)
         - **假设结论错误**：Schnorr 身份证明协议不是 UI-PA 安全的，即存在 PPT 敌手 $\mathcal{A}$ 以不可忽略的概率攻破 Schnorr 身份证明协议的 UI-PA 安全性，即
             $$
-            Adv_{\mathcal{A}} = \Pr\left(
+            \mathrm{Adv}_{\mathcal{A}} = \Pr\left(
             \mathrm{output} = (R^{*}, e^{*}, z^{*}) \left|
             h^{e^{*}} \cdot R^{*}=g^{z^{*}}
             \right.\right) = \text{non-negl}(\lambda)
@@ -215,7 +215,7 @@
                 - 则 $\mathcal{B}$ 成功解决 DL 问题的概率（即两次都成功且挑战值不同的概率）为：
                     $$
                     \begin{aligned}
-                    Adv_{\mathcal{B}} &= \Pr_{\omega, e_1^*, e_2^*}[\mathrm{V}(\omega, e_1^*) = 1 \land \mathrm{V}(\omega, e_2^*) = 1 \land e_1^* \neq e_2^*] \\
+                    \mathrm{Adv}_{\mathcal{B}} &= \Pr_{\omega, e_1^*, e_2^*}[\mathrm{V}(\omega, e_1^*) = 1 \land \mathrm{V}(\omega, e_2^*) = 1 \land e_1^* \neq e_2^*] \\
                     &= \Pr_{\omega, e_1^*, e_2^*}[\mathrm{V}(\omega, e_1^*) = 1 \land \mathrm{V}(\omega, e_2^*) = 1] - \Pr_{\omega, e_1^*, e_2^*}[\mathrm{V}(\omega, e_1^*) = 1 \land \mathrm{V}(\omega, e_2^*) = 1 \land e_1^* = e_2^*] \\
                     &\ge \Pr_{\omega, e_1^*, e_2^*}[\mathrm{V}(\omega, e_1^*) = 1 \land \mathrm{V}(\omega, e_2^*) = 1] - \Pr[e_1^* = e_2^*] \\
                     &\ge \Pr_{\omega, e_1^*, e_2^*}[\mathrm{V}(\omega, e_1^*) = 1 \land \mathrm{V}(\omega, e_2^*) = 1] - 1/p \\
@@ -224,7 +224,7 @@
                     &= \sum_{W\in\Omega_\omega} \Pr[\omega=W] \cdot \Pr_{e^*}[\mathrm{V}(W, e^*) = 1]^2 - 1/p \\
                     &\ge \left(\sum_{W\in\Omega_\omega} \Pr[\omega=W] \cdot \Pr_{e^*}[\mathrm{V}(W, e^*) = 1]\right)^2 - 1/p \\
                     &= \Pr_{\omega, e^*}[\mathrm{V}(\omega, e^*) = 1]^2 - 1/p \\
-                    &= Adv_{\mathcal{A}}^2 - 1/p \\
+                    &= \mathrm{Adv}_{\mathcal{A}}^2 - 1/p \\
                     &\ge \text{non-negl}(\lambda)^2 - \text{negl}(\lambda) \\
                     &= \text{non-negl}(\lambda)
                     \end{aligned}

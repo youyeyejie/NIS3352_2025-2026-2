@@ -52,7 +52,7 @@ Schnorr 签名算法中，Signer 对于两条消息使用统一随机数 $r$ 进
 
 - 假设 DSA 身份证明协议不是 UI-PA 安全的，即存在 PPT 敌手 $\mathcal{A}$ 以不可忽略的概率攻破 DSA 身份证明协议的 UI-PA 安全性，即
     $$
-    Adv_{\mathcal{A}} = \Pr\left(
+    \mathrm{Adv}_{\mathcal{A}} = \Pr\left(
     \mathrm{output} = (R^{*}, e^{*}, d^{*}, z^{*}) \left|
     R^{*} = (g^{e^*} \cdot h^{d^*})^{{z^*}^{-1}}
     \right.\right) = \text{non-negl}(\lambda)
@@ -78,9 +78,9 @@ Schnorr 签名算法中，Signer 对于两条消息使用统一随机数 $r$ 进
     - $\mathcal{B}$ 的优势：$\mathcal{B}$ 成功解出 $s$ 的概率至少为 $\Pr(\text{两次调用成功且} e_1^* \neq e_2^*)$，由于 $e_1^*$ 和 $e_2^*$ 是独立均匀随机选择的，因此 $\Pr(e_1^* = e_2^*) = \frac{1}{p}$，从而 $\Pr(e_1^* \neq e_2^*) = 1 - \frac{1}{p}$。因此 $\mathcal{B}$ 的优势为：
             $$
             \begin{aligned}
-            Adv_{\mathcal{B}} &\geq \Pr(\text{两次调用成功且} e_1^* \neq e_2^*) \\
+            \mathrm{Adv}_{\mathcal{B}} &\geq \Pr(\text{两次调用成功且} e_1^* \neq e_2^*) \\
             &= \Pr(\text{两次调用成功}) \cdot \Pr(e_1^* \neq e_2^*) \\
-            &\geq Adv_{\mathcal{A}} \cdot \left(1 - \frac{1}{p}\right) \\
+            &\geq \mathrm{Adv}_{\mathcal{A}} \cdot \left(1 - \frac{1}{p}\right) \\
             &= \text{non-negl}(\lambda)
             \end{aligned}
             $$
@@ -111,7 +111,7 @@ Schnorr 签名算法中，Signer 对于两条消息使用统一随机数 $r$ 进
     - $\mathcal{B}$ 的优势：
         $$
         \begin{aligned}
-        Adv_{\mathcal{B}} &\geq \Pr\left[
+        \mathrm{Adv}_{\mathcal{B}} &\geq \Pr\left[
         \begin{array}{l}
         (1)\ \mathcal{A} \text{ 成功攻破 DSA 签名算法的 EUF-CMA 安全性} \\
         (2)\ \mathcal{A} \text{ 查询过 } R^{*} \text{ 的 } F \text{ 值和 } M^{*} \text{ 的 } H \text{ 值} \\
