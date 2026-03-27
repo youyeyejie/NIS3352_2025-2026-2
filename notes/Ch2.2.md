@@ -89,23 +89,23 @@
     $$
 
 #### BF 基于身份加密算法（椭圆曲线对称配对群）
-- **组件**：Hash Function $H: \{0,1\}^* \to G$
+- **组件**：Hash Function $\mathrm{H}: \{0,1\}^* \to G$
 - **密钥生成算法** $(PK,SK) \leftarrow \mathrm{Gen}(1^\lambda)$：
     1. 选择椭圆曲线对称配对群 $PG=(G,G_T,N,P,g_T,e)$
     2. 均匀选取 $s\leftarrow\mathbb{Z}_N$，计算 $Q:=sP\in G$
     3. 输出 $PK=(PG,Q)$，$SK=s$
 - **私钥派生算法** $SK_{id} \leftarrow \mathrm{Derive}(SK,id)$，身份空间为 $\{0,1\}^*$
-    1. 计算并输出 $SK_{id}:=sH(id)\in G$
+    1. 计算并输出 $SK_{id}:=s\mathrm{H}(id)\in G$
 - **加密算法**：$C \leftarrow Enc(PK,id,M)$，消息空间为 $\mathbb{M}=G_T$
     1. 均匀选取 $r\leftarrow\mathbb{Z}_N$
     2. 计算 $C_1:=rP\in G$
-    3. 计算 $C_2:=e(Q,H(id))^r\cdot M\in G_T$
+    3. 计算 $C_2:=e(Q,\mathrm{H}(id))^r\cdot M\in G_T$
     4. 输出 $C:=(C_1,C_2)$
 - **解密算法**：$M' \leftarrow Dec(SK_{id},C=(C_1,C_2))$
     1. 计算并输出 $M':=C_2/e(C_1,SK_{id})$
 
 #### BF 基于身份加密算法的 IND-ID-CPA 安全性
-- **定理**：**BDDH 问题困难** + **$\bm{H}$ 为 RO** $\Rightarrow$ **BF 加密算法 IND-ID-CPA 安全**
+- **定理**：**BDDH 问题困难** + **$\mathrm{H}$ 为 RO** $\Rightarrow$ **BF 加密算法 IND-ID-CPA 安全**
     - **思路**：由攻破 IND-ID-CPA 安全性的敌手 $\mathcal{A}$ 来构造解决 BDDH 问题的敌手 $\mathcal{B}$
 
 !!! fold info @Proof
@@ -118,17 +118,17 @@
             - $\mathcal{B}$ 的输入：$PG = (G, G_T, N, P, g_T, e), xP, yP, zP, T_\beta$，其中 $x,y,z \leftarrow \mathbb{Z}_N$，$T_0 = (g_T)^{xyz}$，$T_1 \leftarrow G_T$，$\beta \leftarrow \{0,1\}$
             - $\mathcal{B}$ 的策略：
                 - $\mathcal{B}$ 将 $PK = (PG, Q = xP)$ 发送给 $\mathcal{A}$，并模拟 $\mathcal{A}$ 的环境；设 $\mathcal{A}$ 进行的哈希查询次数为 $Q_H(\lambda)$，加密查询次数为 $Q_E(\lambda)$，则 $\mathcal{B}$ 随机选择 $j \in [1, Q_H(\lambda)]$ 赌 $\mathcal{A}$ 最终输出的消息 $M^{*} = M_j$。
-                - 当 $\mathcal{A}$ 使用 $id_i$ 进行第 $i$ 次**派生私钥查询**时：$\mathcal{B}$ 假设自己的私钥为 $SK = xP$，计算 $SK_{id_i} = xH(id_i) = xPh_{id_i} = h_{id_i}Q$ 返回给 $\mathcal{A}$，并自身记录 $H(id_i) = h_{id_i}P$。
-                    - 此时若 $\mathcal{A}$ 要对派生私钥查询进行验证，计算时需要 $H(id_i)$，只能向 $\mathcal{B}$ 查询哈希结果，必然能通过检验
+                - 当 $\mathcal{A}$ 使用 $id_i$ 进行第 $i$ 次**派生私钥查询**时：$\mathcal{B}$ 假设自己的私钥为 $SK = xP$，计算 $SK_{id_i} = x\mathrm{H}(id_i) = xPh_{id_i} = h_{id_i}Q$ 返回给 $\mathcal{A}$，并自身记录 $\mathrm{H}(id_i) = h_{id_i}P$。
+                    - 此时若 $\mathcal{A}$ 要对派生私钥查询进行验证，计算时需要 $\mathrm{H}(id_i)$，只能向 $\mathcal{B}$ 查询哈希结果，必然能通过检验
                 - 当 $\mathcal{A}$ 使用 $id_i$ 进行第 $k$ 次**哈希查询**时：
-                    - 若 $k = j$ 且 $id_j \notin \{id_i\}$，即 $\mathcal{A}$ 的第 $j$ 次哈希查询的身份 $id_j$ 没有在之前的派生私钥查询中出现过，则 $\mathcal{B}$ 将 $H(id_j) = zP$ 作为自己的哈希输出，并记录 $H(id_j) = zP$。
+                    - 若 $k = j$ 且 $id_j \notin \{id_i\}$，即 $\mathcal{A}$ 的第 $j$ 次哈希查询的身份 $id_j$ 没有在之前的派生私钥查询中出现过，则 $\mathcal{B}$ 将 $\mathrm{H}(id_j) = zP$ 作为自己的哈希输出，并记录 $\mathrm{H}(id_j) = zP$。
                     - 若 $k = j$ 且 $id_j \in \{id_i\}$，则重新选择 $j\in [1, Q_H(\lambda)]$，直到满足 $id_j \notin \{id_i\}$。
-                    - 若 $k \neq j$，则 $\mathcal{B}$ 查询是否有 $H(id_k)$ 的记录：
+                    - 若 $k \neq j$，则 $\mathcal{B}$ 查询是否有 $\mathrm{H}(id_k)$ 的记录：
                         - 若有则直接返回
-                        - 若没有则均匀选取 $h_{id_k} \leftarrow \mathbb{Z}_N$ 返回并记录 $H(id_k) = h_{id_k}P$。
+                        - 若没有则均匀选取 $h_{id_k} \leftarrow \mathbb{Z}_N$ 返回并记录 $\mathrm{H}(id_k) = h_{id_k}P$。
                 - 最终当 $\mathcal{A}$ 输出挑战 $(id^*, M_0, M_1)$ 时，若 $id^* = id_j$，则 $\mathcal{B}$ 将 $C_1 = yP, C_2 = T_\beta M_\beta$ 作为挑战密文返回给 $\mathcal{A}$：
                     - 若 $\beta = 1$，则 $C_2 = T_1 M_1$ 是一个随机元素，$\mathcal{A}$ 无法区分 $M_0$ 和 $M_1$，只能随机猜测 $\beta$ 的值，因此 $\Pr(\mathrm{output}_\mathcal{A} = \beta) = \frac{1}{2}$。
-                    - 若 $\beta = 0$，则 $C_2 = T_0 M_0 = g_T^{xyz} M_0 = e(P, P)^{xyz} M_0 = e(xP, yP)^{z} M_0 = e(Q, yP)^{z} M_0 = e(Q, H(id^*))^{z} M_0$ 是一个合法的挑战密文，$\mathcal{A}$ 可以以不可忽视概率正确区分 $M_0$ 和 $M_1$，因此 $\Pr(\mathrm{output}_\mathcal{A} = \beta) = \text{non-negl}(\lambda)$。
+                    - 若 $\beta = 0$，则 $C_2 = T_0 M_0 = g_T^{xyz} M_0 = e(P, P)^{xyz} M_0 = e(xP, yP)^{z} M_0 = e(Q, yP)^{z} M_0 = e(Q, \mathrm{H}(id^*))^{z} M_0$ 是一个合法的挑战密文，$\mathcal{A}$ 可以以不可忽视概率正确区分 $M_0$ 和 $M_1$，因此 $\Pr(\mathrm{output}_\mathcal{A} = \beta) = \text{non-negl}(\lambda)$。
             - $\mathcal{B}$ 的输出：
                 $$
                 \mathrm{output}_\mathcal{B} = \begin{cases}

@@ -288,17 +288,17 @@
 #### GPV 数字签名算法（Gentry-Peikert-Vaikuntanathan）
 - 组件：
     1. PSF：参数 $(n,m,q,B)$
-    2. Hash Function $H:\{0,1\}^{*}\to\mathbb{Z}_{q}^{n}$
+    2. Hash Function $\mathrm{H}:\{0,1\}^{*}\to\mathbb{Z}_{q}^{n}$
 - **密钥生成算法** $(PK,SK)\leftarrow \mathrm{Gen}(1^{\lambda})$：
     1. 调用 $(\mathbf{A},td)\leftarrow \mathrm{SampleA}(1^{\lambda})$，其中 $\mathbf{A}$ 在 $\mathbb{Z}_{q}^{n\times m}$ 上均匀分布
     2. 输出 $PK=\mathbf{A}$，$SK=td$
 - **签名算法** $\sigma\leftarrow \mathrm{Sign}(SK,M)$：消息空间为 $\mathbb{M}=\{0,1\}^{*}$
-    1. 计算 $H(M)\in\mathbb{Z}_{q}^{n}$
-    2. 调用并输出 $\sigma\in\mathbb{Z}_{q}^{m}\leftarrow \mathrm{SamplePre}(td,\mathbf{A},H(M))$
+    1. 计算 $\mathrm{H}(M)\in\mathbb{Z}_{q}^{n}$
+    2. 调用并输出 $\sigma\in\mathbb{Z}_{q}^{m}\leftarrow \mathrm{SamplePre}(td,\mathbf{A},\mathrm{H}(M))$
 - **验证算法** $0/1\leftarrow \mathrm{Verify}(PK,M,\sigma)$：
-    1. 验证  $\sigma\in[-B,B]^{m} \land \mathbf{A}\sigma\equiv H(M) \pmod{q}$
+    1. 验证  $\sigma\in[-B,B]^{m} \land \mathbf{A}\sigma\equiv \mathrm{H}(M) \pmod{q}$
     2. 如果验证通过，输出 $1$；否则输出 $0$
 
 #### GPV 数字签名算法的 EUF-CMA安全性
-- **定理**：**SIS 问题 $(n,m,q,B_{s}=2B)$ 困难** + **$\bm{H}$ 为 RO** $\implies$ **GPV 签名算法 EUF-CMA 安全**
+- **定理**：**SIS 问题 $(n,m,q,B_{s}=2B)$ 困难** + **$\mathrm{H}$ 为 RO** $\implies$ **GPV 签名算法 EUF-CMA 安全**
     - 证明：安全性规约，由攻破 EUF-CMA 安全性的敌手 $\mathcal{A}$ 来构造解决 SIS 问题的敌手 $\mathcal{B}$。

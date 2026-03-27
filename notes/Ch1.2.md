@@ -86,24 +86,24 @@
     $$
 
 ### Fiat-Shamir 变换
-- 核心：为了使用身份证明协议进行签名，证明者（签名者）可将挑战 $e$ 用哈希函数 $H(~)$ 计算，自己独立地执行协议，无需与验证者交互。
+- 核心：为了使用身份证明协议进行签名，证明者（签名者）可将挑战 $e$ 用哈希函数 $\mathrm{H}(\cdot)$ 计算，自己独立地执行协议，无需与验证者交互。
 - 交互流程：
     ![](image/image-8.png)
-- Fiat-Shamir 变换的安全性：**身份证明协议是 UI-PA 安全的** + **$\bm{H}$ 为 RO** $\implies$ **通过 Fiat-Shamir 变换得到的签名算法是 EUF-CMA 安全的**
+- Fiat-Shamir 变换的安全性：**身份证明协议是 UI-PA 安全的** + **$\bm{\mathrm{H}}$ 为 RO** $\implies$ **通过 Fiat-Shamir 变换得到的签名算法是 EUF-CMA 安全的**
     - 证明：参考后续 [Schnorr 签名算法的安全性证明](#schnorr-签名算法的-euf-cma-安全性)
 
 ### Random Oracle 模型（随机预言机）
-- Random Oracle 模型（随机预言机）是对哈希函数 $H: G \to \{0,1\}^{m}$ 的假设，用于安全性证明中。
+- Random Oracle 模型（随机预言机）是对哈希函数 $\mathrm{H}: G \to \{0,1\}^{m}$ 的假设，用于安全性证明中。
 - **核心假设**：
-    1. **Oracle-预言机假设**：敌手无法自己计算 $H$ 的值，只能通过查询“预言机” $H(·)$ 的方式获得 $H$ 的值：每一次查询，敌手向预言机 $H(·)$ 提交一个 $X$，$H(·)$ 返回输出 $H(X)$。
-    2. **Random-随机性假设**：随机预言机 $H(·)$ 在每一个 $X$ 上的输出值 $H(X)$ 都是服从值域 $\{0,1\}^m$ 上均匀分布的，其随机性来源于预言机 $H(·)$ 内部。
-    3. **Programmable-可编程性假设**：在安全性证明中，“随机预言机” $H(·)$ 由环境/挑战者向敌手提供。
+    1. **Oracle-预言机假设**：敌手无法自己计算 $\mathrm{H}$ 的值，只能通过查询“预言机” $\mathrm{H}(\cdot)$ 的方式获得 $\mathrm{H}$ 的值：每一次查询，敌手向预言机 $\mathrm{H}(\cdot)$ 提交一个 $X$，$\mathrm{H}(\cdot)$ 返回输出 $\mathrm{H}(X)$。
+    2. **Random-随机性假设**：随机预言机 $\mathrm{H}(\cdot)$ 在每一个 $X$ 上的输出值 $\mathrm{H}(X)$ 都是服从值域 $\{0,1\}^m$ 上均匀分布的，其随机性来源于预言机 $\mathrm{H}(\cdot)$ 内部。
+    3. **Programmable-可编程性假设**：在安全性证明中，“随机预言机” $\mathrm{H}(\cdot)$ 由环境/挑战者向敌手提供。
 - **推论**：
-    1. Oracle 假设 + Random 假设：如果敌手没有向预言机 $H(·)$ 查询过某个输入 $X$，那么 $H(X)$ 的值对于敌手而言是完全均匀的。
-    2. Oracle 假设 + Programmable 假设：环境/挑战者知道敌手向预言机 $H(·)$ 查询过哪些输入 $X$。
-    3. Random 假设 + Programmable 假设：环境/挑战者针对敌手的每一次预言机 $H(·)$ 查询 $X$，返回值域 $\{0,1\}^m$ 上均匀分布的值作为 $H(X)$ 的值。
+    1. Oracle 假设 + Random 假设：如果敌手没有向预言机 $\mathrm{H}(\cdot)$ 查询过某个输入 $X$，那么 $\mathrm{H}(X)$ 的值对于敌手而言是完全均匀的。
+    2. Oracle 假设 + Programmable 假设：环境/挑战者知道敌手向预言机 $\mathrm{H}(\cdot)$ 查询过哪些输入 $X$。
+    3. Random 假设 + Programmable 假设：环境/挑战者针对敌手的每一次预言机 $\mathrm{H}(\cdot)$ 查询 $X$，返回值域 $\{0,1\}^m$ 上均匀分布的值作为 $\mathrm{H}(X)$ 的值。
 - **说明**:
-    - RO 模型刻画了敌手只能**黑盒**的调用 Hash Function，敌手无法仅阅读 Hash Function 的代码而不调用 Hash Function 推断出 $H(X)$ 的值。
+    - RO 模型刻画了敌手只能**黑盒**的调用 Hash Function，敌手无法仅阅读 Hash Function 的代码而不调用 Hash Function 推断出 $\mathrm{H}(X)$ 的值。
 
 ### Schnorr 身份证明协议与签名算法
 #### Schnorr 身份证明协议
@@ -112,55 +112,55 @@
     ![](image/image-9.png)
 
 #### Schnorr 签名算法
-- **组件**：Hash Function $H: \{0,1\}^{*} \to \mathbb{Z}_p$
+- **组件**：Hash Function $\mathrm{H}: \{0,1\}^{*} \to \mathbb{Z}_p$
 - **密钥生成算法** $(PK, SK) \leftarrow \mathrm{Gen}(1^\lambda)$：
     1. 选择循环群 $G$，其阶为素数 $p$、生成元为 $g$
     2. 均匀选取 $s \leftarrow \mathbb{Z}_p$，计算 $h := g^s \in G$
     3. 输出 $PK = (G, p, g, h)$，$SK = s$
 - **签名算法** $\sigma \leftarrow \mathrm{Sign}(SK, M)$，消息空间为 $\mathbb{M}=\{0,1\}^{*}$
     1. 均匀选取 $r \leftarrow \mathbb{Z}_{p}$，计算 $R:=g^{r} \in G$
-    2. 计算 $e:=H(R, M) \in \mathbb{Z}_{p}$
+    2. 计算 $e:=\mathrm{H}(R, M) \in \mathbb{Z}_{p}$
     3. 计算 $z:=e \cdot s+r \in \mathbb{Z}_{p}$
     4. 输出 $\sigma:=(R, z)$
 - **验证算法** $0/1 \leftarrow \mathrm{Verify}(PK, M, \sigma=(R, z))$
-    1. 计算 $e:=H(R, M) \in \mathbb{Z}_{p}$
+    1. 计算 $e:=\mathrm{H}(R, M) \in \mathbb{Z}_{p}$
     2. 验证 $g^{z} \stackrel{?}{=} h^{e} \cdot R$，相等输出 $1$，否则输出 $0$
 
 #### 安全性分析
 ##### Schnorr 签名算法的 EUF-CMA 安全性
 - **断言1**：如果在数字签名的 EUF-CMA 安全模型下，存在攻击者 $\mathcal{A}$ 以不可忽略的概率攻破 Schnorr 签名。设 $\mathcal{A}$ 的输出为 $(M^{*}, \sigma^{*}=(R^{*}, z^{*}))$，即
     $$
-    \mathrm{Adv}_{\mathcal{A}}=Pr\left(output _{\mathcal{A}}=(M^{*}, \sigma^{*})\left| h^{H(R^{*}, M^{*})} \cdot R^{*}=g^{z^{*}}\right.\right)=\text{non-negl}(\lambda)
+    \mathrm{Adv}_{\mathcal{A}}=\Pr\left(\mathrm{output}_{\mathcal{A}}=(M^{*}, \sigma^{*})\left| h^{\mathrm{H}(R^{*}, M^{*})} \cdot R^{*}=g^{z^{*}}\right.\right)=\text{non-negl}(\lambda)
     $$
 
     则 $\mathcal{A}$ 以不可忽略的概率查询过 $(R^{*}, M^{*})$ 的 Hash 值。
 
 !!! fold info @Proof
-    - **证明**：反证法，假设 $\mathcal{A}$ 没有查询过 $(R^{*}, M^{*})$ 的 Hash 值，则在 $H$ 为 RO 假设下，$H(R^{*}, M^{*})$ 对 $\mathcal{A}$ 是 $\mathbb{Z}_{p}$ 中均匀随机的元素，因此 $h^{H(R^{*}, M^{*})}$ 对 $\mathcal{A}$ 是 $G$ 中均匀随机的元素。则 $\mathcal{A}$ 猜对 $z^{*} \in \mathbb{Z}_{p}$ 满足
+    - **证明**：反证法，假设 $\mathcal{A}$ 没有查询过 $(R^{*}, M^{*})$ 的 Hash 值，则在 $\mathrm{H}$ 为 RO 假设下，$\mathrm{H}(R^{*}, M^{*})$ 对 $\mathcal{A}$ 是 $\mathbb{Z}_{p}$ 中均匀随机的元素，因此 $h^{\mathrm{H}(R^{*}, M^{*})}$ 对 $\mathcal{A}$ 是 $G$ 中均匀随机的元素。则 $\mathcal{A}$ 猜对 $z^{*} \in \mathbb{Z}_{p}$ 满足
         $$
-        h^{H(R^{*}, M^{*})}=g^{z^{*}} \cdot (R^{*})^{-1}
+        h^{\mathrm{H}(R^{*}, M^{*})}=g^{z^{*}} \cdot (R^{*})^{-1}
         $$
 
         的概率为 $\frac{1}{|G|}=\frac{1}{p}=negl(\lambda)$，与假设矛盾。
-- **引理1（Fiat-Shamir 转换）**：**Schnorr 身份证明协议是 UI-PA 安全的** + **$\bm{H}$ 为 RO** $\implies$ **Schnorr 签名算法是 EUF-CMA 安全的**
+- **引理1（Fiat-Shamir 转换）**：**Schnorr 身份证明协议是 UI-PA 安全的** + **$\mathrm{H}$ 为 RO** $\implies$ **Schnorr 签名算法是 EUF-CMA 安全的**
     - **思路**：将 $\mathcal{A}$ 作为 $\mathcal{B}$ 的子算法，为 $\mathcal{A}$ 提供合法的输入，以及返回合法的签名查询。利用 $\mathcal{A}$ 的输出结果帮助 $\mathcal{B}$ 在 UI-PA 中的输出正确的结果。
 
 !!! fold info @Proof
     - **证明**：使用反证法（安全性规约）
         ![](image/image-10.png)
         - **假设结论错误**：Schnorr 签名算法不是 EUF-CMA 安全的，即存在 PPT 敌手 $\mathcal{A}$ 以不可忽略的概率攻破 Schnorr 签名算法的 EUF-CMA 安全性。
-            - 即 $\mathcal{A}$ 通过若干次签名查询后，可以输出一个未查询过的消息 $M^{*}$ 以及一个有效签名 $\sigma^{*}=(R^{*}, z^{*})$，以不可忽略的概率满足 $h^{H(R^{*}, M^{*})} \cdot R^{*}=g^{z^{*}}$
+            - 即 $\mathcal{A}$ 通过若干次签名查询后，可以输出一个未查询过的消息 $M^{*}$ 以及一个有效签名 $\sigma^{*}=(R^{*}, z^{*})$，以不可忽略的概率满足 $h^{\mathrm{H}(R^{*}, M^{*})} \cdot R^{*}=g^{z^{*}}$
         - **证明前提错误**：构造一个 PPT 敌手 $\mathcal{B}$，在 UI-PA 安全模型下攻破 Schnorr 身份证明协议。
             - **$\mathcal{B}$ 的策略**：
                 - $\mathcal{B}$ 将公钥 $PK$ 作为输入提供给 $\mathcal{A}$；设 $\mathcal{A}$ 进行的哈希查询次数为 $Q(\lambda)$，则 $\mathcal{B}$ 随机选择 $j \in [1, Q(\lambda)]$ 赌 $\mathcal{A}$ 最终输出的消息 $M^{*}=M_j$
-                - 当 $\mathcal{A}$ 使用 $M_i$ 进行第 $i$ 次**签名查询**时：$\mathcal{B}$ 由于本身不具备私钥 $SK$，无法生成合法的签名，因此向挑战者 $E_{id}$ 发起查询，拿到一组合法记录 $(R_i, e_i, z_i)$，并将 $\sigma_i=(R_i, z_i)$ 返回给 $\mathcal{A}$，并自身记录 $H(R_i, M_i) = e_i$
-                    - 此时若 $\mathcal{A}$ 要对签名查询进行验证，计算时需要 $H(R_i, M_i)$，只能向 $\mathcal{B}$ 查询哈希结果，必然能通过检验
+                - 当 $\mathcal{A}$ 使用 $M_i$ 进行第 $i$ 次**签名查询**时：$\mathcal{B}$ 由于本身不具备私钥 $SK$，无法生成合法的签名，因此向挑战者 $E_{id}$ 发起查询，拿到一组合法记录 $(R_i, e_i, z_i)$，并将 $\sigma_i=(R_i, z_i)$ 返回给 $\mathcal{A}$，并自身记录 $\mathrm{H}(R_i, M_i) = e_i$
+                    - 此时若 $\mathcal{A}$ 要对签名查询进行验证，计算时需要 $\mathrm{H}(R_i, M_i)$，只能向 $\mathcal{B}$ 查询哈希结果，必然能通过检验
                 - 当 $\mathcal{A}$ 使用 $(R_k, M_k)$ 进行第 $k$ 次**哈希查询**时：
-                    - 若 $k=j$ 且 $M_j \notin \{M_i\}$，即 $\mathcal{A}$ 的第 $j$ 次哈希查询的消息 $M_j$ 没有在之前的签名查询中出现过，则 $\mathcal{B}$ 向 $E_{id}$ 输入 $R_j$ 并把返回的 $e_j$ 当作自己的哈希输出，并记录 $H(R_j, M_j) = e_j$
+                    - 若 $k=j$ 且 $M_j \notin \{M_i\}$，即 $\mathcal{A}$ 的第 $j$ 次哈希查询的消息 $M_j$ 没有在之前的签名查询中出现过，则 $\mathcal{B}$ 向 $E_{id}$ 输入 $R_j$ 并把返回的 $e_j$ 当作自己的哈希输出，并记录 $\mathrm{H}(R_j, M_j) = e_j$
                     - 若 $k=j$ 且 $M_j \in \{M_i\}$，则重新选择 $j \in [1, Q(\lambda)]$，直到满足 $M_j \notin \{M_i\}$
-                    - 若 $k \in [1, Q(\lambda)] \setminus \{j\}$，$\mathcal{B}$ 查询是否有 $H(R_k, M_k)$ 的记录：
+                    - 若 $k \in [1, Q(\lambda)] \setminus \{j\}$，$\mathcal{B}$ 查询是否有 $\mathrm{H}(R_k, M_k)$ 的记录：
                         - 若有则直接返回
-                        - 若没有则随机选择 $e \leftarrow \mathbb{Z}_p$ 返回并记录 $H(R_k, M_k) = e$
+                        - 若没有则随机选择 $e \leftarrow \mathbb{Z}_p$ 返回并记录 $\mathrm{H}(R_k, M_k) = e$
                 - 最终当 $\mathcal{A}$ 输出 $(M^{*}, \sigma^{*}=(R^{*}, z^{*}))$ 时，若 $M^{*}=M_j$，则 $\mathcal{B}$ 输出 $z^{*}$ 作为自己的输出，否则视为失败。
             - **$\mathcal{B}$ 的优势**：
                 $$
@@ -234,7 +234,7 @@
 ##### 定理
 $$
 \begin{aligned}
-&\text{DL 问题困难} + H \text{ 为 RO} \\
+&\text{DL 问题困难} + \mathrm{H} \text{ 为 RO} \\
 \implies &\text{Schnorr 身份证明协议是 UI-PA 安全的} \\
 \implies &\text{Schnorr 签名算法是 EUF-CMA 安全的}
 \end{aligned}
@@ -248,35 +248,35 @@ $$
 
 #### DSA 签名算法
 - **组件**：Hash Functions
-    - $H: \{0,1\}^{*} \to \mathbb{Z}_p$
-    - $F: G \to \mathbb{Z}_p$
+    - $\mathrm{H}: \{0,1\}^{*} \to \mathbb{Z}_p$
+    - $\mathrm{F}: G \to \mathbb{Z}_p$
 - **密钥生成算法** $(PK, SK) \leftarrow \mathrm{Gen}(1^\lambda)$：
     1. 选择循环群 $G$，其阶为素数 $p$、生成元为 $g$
     2. 均匀选取 $s \leftarrow \mathbb{Z}_p$，计算 $h := g^s \in G$
     3. 输出 $PK = (G, p, g, h)$，$SK = s$
 - **签名算法** $\sigma \leftarrow \mathrm{Sign}(SK, M)$，消息空间为 $\mathbb{M}=\{0,1\}^{*}$
     1. 均匀选取 $r \leftarrow \mathbb{Z}_{p}$，计算 $R:=g^{r} \in G$
-    2. 计算 $e:=H(M) \in \mathbb{Z}_{p}$
-    3. 计算 $d:=F(R) \in \mathbb{Z}_{p}$
+    2. 计算 $e:=\mathrm{H}(M) \in \mathbb{Z}_{p}$
+    3. 计算 $d:=\mathrm{F}(R) \in \mathbb{Z}_{p}$
     4. 计算 $z:=r^{-1}(e + d \cdot s) \in \mathbb{Z}_{p}$
     5. 输出 $\sigma:=(d, z)$
 - **验证算法** $0/1 \leftarrow \mathrm{Verify}(PK, M, \sigma=(d, z))$
-    1. 计算 $e:=H(M) \in \mathbb{Z}_{p}$
+    1. 计算 $e:=\mathrm{H}(M) \in \mathbb{Z}_{p}$
     2. 计算 $R:=(g^e \cdot h^d)^{z^{-1}} \in G$
-    3. 计算 $d':=F(R) \in \mathbb{Z}_{p}$
+    3. 计算 $d':=\mathrm{F}(R) \in \mathbb{Z}_{p}$
     4. 验证 $d \stackrel{?}{=} d'$，相等输出 $1$，否则输出 $0$
 
 #### 安全性分析
 $$
 \begin{aligned}
-&\text{DL 问题困难} + H,F \text{ 为 RO} \\
-\implies &\text{DSA 身份证明协议是 UI-PA 安全的} + H,F \text{ 为 RO} \\
+&\text{DL 问题困难} + \mathrm{H}, \mathrm{F} \text{ 为 RO} \\
+\implies &\text{DSA 身份证明协议是 UI-PA 安全的} + \mathrm{H}, \mathrm{F} \text{ 为 RO} \\
 \implies &\text{DSA 签名算法是 EUF-CMA 安全的}
 \end{aligned}
 $$
 
 #### DSA 与 ECDSA 签名算法的应用
-- DSA 为上述算法在大整数循环群 $G=\mathbb{Z}_N^*$ 的 $p$ 阶子群上的具体实现，其中 $F: G \to \mathbb{Z}_p$ 定义为 $F(R) = R \bmod p$
-- ECDSA 为上述算法在椭圆曲线循环群 $G$ 上的具体实现，其中 $F: G \to \mathbb{Z}_p$ 定义为 $F(R=(x_R, y_R)) = x_R \bmod p$。
+- DSA 为上述算法在大整数循环群 $G=\mathbb{Z}_N^*$ 的 $p$ 阶子群上的具体实现，其中 $\mathrm{F}: G \to \mathbb{Z}_p$ 定义为 $\mathrm{F}(R) = R \bmod p$
+- ECDSA 为上述算法在椭圆曲线循环群 $G$ 上的具体实现，其中 $\mathrm{F}: G \to \mathbb{Z}_p$ 定义为 $\mathrm{F}(R=(x_R, y_R)) = x_R \bmod p$。
 
 > 基于上述具体 $F$ 函数的 DSA / ECDSA 签名算法的安全性没有基于标准困难问题的安全性证明，但也不存在有效的攻击方法，因此在实际应用中被广泛使用。
