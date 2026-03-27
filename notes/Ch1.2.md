@@ -89,7 +89,7 @@
 - 核心：为了使用身份证明协议进行签名，证明者（签名者）可将挑战 $e$ 用哈希函数 $H(~)$ 计算，自己独立地执行协议，无需与验证者交互。
 - 交互流程：
     ![](image/image-8.png)
-- Fiat-Shamir 变换的安全性：**身份证明协议是 UI-PA 安全的** + **$H$ 为 RO** $\implies$ **通过 Fiat-Shamir 变换得到的签名算法是 EUF-CMA 安全的**
+- Fiat-Shamir 变换的安全性：**身份证明协议是 UI-PA 安全的** + **$\bm{H}$ 为 RO** $\implies$ **通过 Fiat-Shamir 变换得到的签名算法是 EUF-CMA 安全的**
     - 证明：参考后续 [Schnorr 签名算法的安全性证明](#schnorr-签名算法的-euf-cma-安全性)
 
 ### Random Oracle 模型（随机预言机）
@@ -142,7 +142,7 @@
         $$
 
         的概率为 $\frac{1}{|G|}=\frac{1}{p}=negl(\lambda)$，与假设矛盾。
-- **引理1（Fiat-Shamir 转换）**：**Schnorr 身份证明协议是 UI-PA 安全的** + **$H$ 为 RO** $\implies$ **Schnorr 签名算法是 EUF-CMA 安全的**
+- **引理1（Fiat-Shamir 转换）**：**Schnorr 身份证明协议是 UI-PA 安全的** + **$\bm{H}$ 为 RO** $\implies$ **Schnorr 签名算法是 EUF-CMA 安全的**
     - **思路**：将 $\mathcal{A}$ 作为 $\mathcal{B}$ 的子算法，为 $\mathcal{A}$ 提供合法的输入，以及返回合法的签名查询。利用 $\mathcal{A}$ 的输出结果帮助 $\mathcal{B}$ 在 UI-PA 中的输出正确的结果。
 
 !!! fold info @Pf

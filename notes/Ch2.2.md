@@ -105,7 +105,7 @@
     1. 计算并输出 $M':=C_2/e(C_1,SK_{id})$
 
 #### BF 基于身份加密算法的 IND-ID-CPA 安全性
-- **定理**：**BDDH 问题困难** + **$H$ 为 RO** $\Rightarrow$ **BF 加密算法 IND-ID-CPA 安全**
+- **定理**：**BDDH 问题困难** + **$\bm{H}$ 为 RO** $\Rightarrow$ **BF 加密算法 IND-ID-CPA 安全**
     - **思路**：由攻破 IND-ID-CPA 安全性的敌手 $\mathcal{A}$ 来构造解决 BDDH 问题的敌手 $\mathcal{B}$
 
 !!! fold info @Pf

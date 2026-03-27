@@ -89,7 +89,7 @@ Schnorr 签名算法中，Signer 对于两条消息使用统一随机数 $r$ 进
 ---
 
 ## Problem 4 (25 marks)
-证明 DSA 身份认证协议满足 UI-PA 安全性 + H,F 为 RO $\implies$ DSA 签名算法满足 EUF-CMA 安全性。
+证明 DSA 身份认证协议满足 UI-PA 安全性 + $H,F$ 为 RO $\implies$ DSA 签名算法满足 EUF-CMA 安全性。
 
 **证明**：安全性归约，由攻破 DSA 签名算法的 EUF-CMA 安全性的敌手 $\mathcal{A}$ 来构造攻破 DSA 身份认证协议的 UI-PA 安全性的敌手 $\mathcal{B}$。
 
