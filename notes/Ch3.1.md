@@ -309,7 +309,7 @@
     - 观察:
         1. 如果没有对于 $\mathbf{x}$ 的限制，使用高斯消元法很容易求解 $\mathbf{x}$。
         2. 对于 SIS 问题，$m$ 越大越容易，$n$ 越大越困难。
-    - 直觉：定义对偶格 $\mathcal{L}(\mathbf{A})^\bot =\{\mathbf{x}\in\mathbb{Z}^{m} \mid \mathbf{Ax}\equiv\mathbf{0}\pmod q\}$，SIS 问题要求找到 $\mathcal{L}(\mathbf{A})$ 中一个非零的短向量。
+    - 直觉：定义正交格 $\Lambda^\bot(\mathbf{A}) =\{\mathbf{x}\in\mathbb{Z}^{m} \mid \mathbf{Ax}\equiv\mathbf{0}\pmod q\}$，SIS 问题要求找到 $\mathcal{L}(\mathbf{A})$ 中一个非零的短向量。
         ![](image/image-19.png)
 - **定理**：如果 $m\cdot B_{\chi}\cdot B_{s}<q/4$，则 **判定性 LWE 问题 $(n,m,q,\chi)$ 困难** $\implies$ **SIS 问题 $(n,m,q,B_{s})$ 困难**
 
@@ -319,7 +319,10 @@
         - 此时考虑 $\mathbf{z}_\beta^\top \cdot \mathbf{x}$：
             - 当 $\beta=0$ 时，$\mathbf{z}_{0}=\mathbf{A}^{\top}\mathbf{s}+\mathbf{e}$，因此
                 $$
-                \mathbf{z}_{0}^{\top}\cdot \mathbf{x}=\mathbf{s}^{\top}\mathbf{A}\mathbf{x}+\mathbf{e}^{\top}\mathbf{x}=\mathbf{e}^{\top}\mathbf{x}=\sum_{i=1}^{m} e_i x_i \in[-mB_{\chi}B_{s},mB_{\chi}B_{s}] \subseteq(-q/4,q/4)
+                \begin{aligned}
+                \mathbf{z}_{0}^{\top}\cdot \mathbf{x}&=\mathbf{s}^{\top}\mathbf{A}\mathbf{x}+\mathbf{e}^{\top}\mathbf{x}=\mathbf{e}^{\top}\mathbf{x}=\sum_{i=1}^{m} e_i x_i \\
+                &\in[-mB_{\chi}B_{s},mB_{\chi}B_{s}] \subseteq(-q/4,q/4)
+                \end{aligned}
                 $$
             - 当 $\beta=1$ 时，$\mathbf{z}_{1}\leftarrow\mathbb{Z}_{q}^{m}$，因此 $\mathbf{z}_{1}^{\top}\cdot \mathbf{x}$ 在 $\mathbb{Z}_{q}$ 上均匀分布，则 $\mathbf{z}_{1}^{\top}\cdot \mathbf{x} \in(-q/4,q/4)$ 的概率为 $1/2$。
         - $\mathcal{B}$ 的输出：
@@ -361,8 +364,120 @@
     - 先均匀选取 $\mathbf{y}\leftarrow\mathbb{Z}_{q}^{n}$，再调用 $\mathbf{x}\leftarrow \mathrm{SamplePre}(td,\mathbf{A},\mathbf{y})$
 
 #### MP12 陷门生成算法
-<!--  -->
+##### 目标
+- 给定 $\mathbf{A} \leftarrow \mathbb{Z}_q^{n \times m}$，求解 $\mathbf{T}_A \in \mathbb{Z}^{m \times m}$ 满足：
+    1. $\mathbf{A} \cdot \mathbf{T}_A \equiv \mathbf{0} \pmod q$
+    2. $\mathbf{T}_A \in [-B_s, B_s]^{m \times m}$
+    3. $\mathbf{T}_A$ 满秩
+- 寻找陷门 $\mathbf{T}_A$ 本质上就是为正交格 $\Lambda^\bot(\mathbf{A}) =\{\mathbf{x}\in\mathbb{Z}^{m} \mid \mathbf{Ax}\equiv\mathbf{0}\pmod q\}$ 寻找一组短基（Short Basis）
 - 如果得到了陷门，那么 SIS 问题、LWE 问题都不再困难！
+
+##### 构造 Gadget 矩阵 $G$ 及其陷门 $T_G$
+- **思路**：由于直接为一个随机矩阵 $A$ 寻找陷门困难的，因此人为构造一个结构极度规律的特殊矩阵 $G$，它的陷门可以直接写出。
+- **构造方法**：
+    1. 二进制拆分
+        - 定义二进制位宽 $k = \lceil \log q \rceil$，则 $2^{k-1} < q \leq 2^k$
+        - 对于任意整数 $x \in \mathbb{Z}_q$，它可以被唯一拆分为二进制表示 $x = x_0 + 2\cdot x_1 + \dots + 2^{k-1}\cdot x_{k-1} \quad (x_i \in \{0, 1\})$，定义提取函数：$x \mapsto \langle x \rangle _{BE} = (x_0, x_1, \dots, x_{k-1})^\top$
+    2. 定义 $\mathbf{g} = (1, 2, 2^2, \dots, 2^{k-1})_{1 \times k}$，则有 $x = \mathbf{g} \cdot \langle x \rangle _{BE}$
+    3. 通过张量积将 $\mathbf{g}$ 扩展为 $n \times nk$ 维的对角块矩阵：
+        $$
+        \mathbf{G} := \mathbf{I}_n \otimes \mathbf{g} = \begin{pmatrix} \mathbf{g} & \mathbf{0} & \dots & \mathbf{0} \\
+        \mathbf{0} & \mathbf{g} & \dots & \mathbf{0} \\
+        \vdots & \vdots & \ddots & \vdots \\
+        \mathbf{0} & \mathbf{0} & \dots & \mathbf{g}
+        \end{pmatrix}_{n \times nk}
+        $$
+    4. 构造针对 $\mathbf{g}$ 的一维陷门 $\mathbf{T}_g$：
+        $$
+        \mathbf{T}_g = \begin{pmatrix}
+        2 & 0 & 0 & \dots & 0 \\
+        -1 & 2 & 0 & \dots & 0 \\
+        0 & -1 & 2 & \dots & 0 \\
+        \vdots & \vdots & \vdots & \ddots & \vdots \\
+        0 & 0 & 0 & \dots & 2 \\
+        \end{pmatrix}_{k \times k}
+        $$
+
+        易证 $\mathbf{g} \cdot \mathbf{T}_g = \mathbf{0} \pmod q$
+    5. 扩展到全维，得到针对 $\mathbf{G}$ 的陷门 $\mathbf{T}_G$：
+        $$
+        \mathbf{T}_G := \mathbf{I}_n \otimes \mathbf{T}_g = \begin{pmatrix}
+        \mathbf{T}_g & & \\
+        & \ddots & \\
+        & & \mathbf{T}_g
+        \end{pmatrix}_{nk \times nk}
+        $$
+        - $\mathbf{G} \cdot \mathbf{T}_G = \mathbf{0} \pmod q$ 显然成立
+        - $\mathbf{T}_G$ 内部元素仅包含 $2, -1, 0$，满足短矩阵要求
+        - $\mathbf{T}_G$ 是下三角矩阵，主对角线不为 0，满秩。
+
+##### 定义逆向操作函数 $\mathbf{G}^{-1}(\cdot)$
+- 定义：给定任意目标向量 $\mathbf{y} \in \mathbb{Z}_q^n$，求解 $\mathbf{x} \in \{0, 1\}^{nk}$ 使得 $\mathbf{G} \cdot \mathbf{x} = \mathbf{y} \pmod q$，即
+    $$
+    \mathbf{x} = \mathbf{G}^{-1}(\mathbf{y})
+    $$
+    - 实际上解决了一个特定于 $\mathbf{G}$ 的 SIS 问题。
+- **计算方法**：将向量 $\mathbf{y} = (y_1, y_2, \dots, y_n)^\top$ 的每一个元素分别进行二进制拆分，得到 $\langle y_i \rangle _{BE~n\times 1}$，然后将它们竖着拼接起来：
+    $$
+    \mathbf{x} := \mathbf{G}^{-1}(\mathbf{y}) = \begin{pmatrix}
+    \langle y_1 \rangle _{BE} \\
+    \langle y_2 \rangle _{BE} \\
+    \vdots \\
+    \langle y_n \rangle _{BE}
+    \end{pmatrix}_{nk \times 1} \in \{0, 1\}^{nk}
+    $$
+- **正确性验证**：因为 $\mathbf{G} = I_n \otimes \mathbf{g}$，并且根据前面的定义有 $\mathbf{g} \cdot \langle y_i \rangle _{BE} = y_i$，所以：
+    $$
+    \mathbf{G} \cdot \mathbf{x} = \begin{pmatrix}
+    \mathbf{g} & \mathbf{0} & \dots & \mathbf{0} \\
+    \mathbf{0} & \mathbf{g} & \dots & \mathbf{0} \\
+    \vdots & \vdots & \ddots & \vdots \\
+    \mathbf{0} & \mathbf{0} & \dots & \mathbf{g}
+    \end{pmatrix} \cdot \begin{pmatrix}
+    \langle y_1 \rangle _{BE} \\
+    \langle y_2 \rangle _{BE} \\
+    \vdots \\
+    \langle y_n \rangle _{BE}
+    \end{pmatrix} = \begin{pmatrix}
+    \mathbf{g} \cdot \langle y_1 \rangle _{BE} \\ \mathbf{g} \cdot \langle y_2 \rangle _{BE} \\
+    \vdots \\
+    \mathbf{g} \cdot \langle y_n \rangle _{BE}
+    \end{pmatrix} = \begin{pmatrix}
+    y_1 \\ y_2 \\ \vdots \\ y_n
+    \end{pmatrix} = \mathbf{y}
+    $$
+
+##### 生成随机公钥及其陷门
+1. **密钥生成**：
+    - 掩码矩阵：$\mathbf{B} \leftarrow \mathbb{Z}_q^{n \times m^*}$
+    - **生成私钥**：$\mathbf{R} \leftarrow \{0, 1\}^{m^* \times nk}$
+    - **构造公钥**：$\mathbf{A} := \begin{pmatrix} \mathbf{B} & \mathbf{BR} + \mathbf{G} \end{pmatrix}_{n \times (m^* + nk)}$
+        - 基于剩余哈希引理：由于 $\mathbf{R}$ 是未知的短矩阵，$\mathbf{B}$ 是随机的，因此 $\mathbf{BR}$ 看起来也是完全随机的；$\mathbf{BR}+\mathbf{G}$ 完美地掩盖了 $\mathbf{G}$ 的痕迹。在外界看来，$\mathbf{A}$ 只是一个普通的随机矩阵。
+2. **利用私钥提取 $G$**：拥有私钥 $\mathbf{R}$ 的人，可以通过右乘一个特殊矩阵提取出 $\mathbf{G}$：
+    $$
+    \mathbf{A} \cdot \begin{pmatrix} -\mathbf{R} \\ \mathbf{I} \end{pmatrix}
+    = \begin{pmatrix} \mathbf{B} \quad \mathbf{BR}+\mathbf{G} \end{pmatrix} \cdot \begin{pmatrix} -\mathbf{R} \\ \mathbf{I} \end{pmatrix}
+    = -\mathbf{BR} + (\mathbf{BR}+\mathbf{G})
+    = \mathbf{G}
+    $$
+3. **构造随机公钥陷门 $\mathbf{T}_A$**：利用私钥 $\mathbf{R}$、公开的工具陷门 $\mathbf{T}_G$、以及操作函数 $\mathbf{G}^{-1}$，构造如下的分块矩阵 $\mathbf{T}_A$：
+    $$
+    \mathbf{T}_A := \begin{pmatrix} \mathbf{I} & -\mathbf{R} \\ \mathbf{0} & \mathbf{I} \end{pmatrix}\cdot \begin{pmatrix} \mathbf{I} & \mathbf{0} \\ -\mathbf{G}^{-1}(\mathbf{B}) & \mathbf{T}_G \end{pmatrix}
+    = \begin{pmatrix} \mathbf{I} + \mathbf{R} \cdot \mathbf{G}^{-1}(\mathbf{B}) & -\mathbf{R} \cdot \mathbf{T}_G \\ -\mathbf{G}^{-1}(\mathbf{B}) & \mathbf{T}_G \end{pmatrix}
+    $$
+
+    - 满足 $\mathbf{A} \cdot \mathbf{T}_A = \mathbf{0}$：
+        $$
+        \begin{aligned}
+        \mathbf{A} \cdot \mathbf{T}_A
+        &= \begin{pmatrix} \mathbf{B} & \mathbf{BR}+\mathbf{G} \end{pmatrix} \cdot \begin{pmatrix} \mathbf{I} + \mathbf{R} \mathbf{G}^{-1}(\mathbf{B}) & -\mathbf{R} \mathbf{T}_G \\ -\mathbf{G}^{-1}(\mathbf{B}) & \mathbf{T}_G  \end{pmatrix} \\
+        &= \begin{pmatrix} \mathbf{B}-\mathbf{G}\mathbf{G}^{-1}(\mathbf{B}) & \mathbf{G}\mathbf{T}_G \end{pmatrix} \\
+        &= \begin{pmatrix} \mathbf{0} & \mathbf{0} \end{pmatrix} \\
+        &= \mathbf{0}
+        \end{aligned}
+        $$
+    - $\mathbf{T}_A$ 的四个分块：单位阵 $\mathbf{I}$、私钥 $\mathbf{R} \in \{0,1\}^{m^* \times nk}$、拆分矩阵 $\mathbf{G}^{-1}(\mathbf{B}) \in \{0,1\}^{nk \times n}$、工具陷门 $\mathbf{T}_G \in \{-1,0,2\}^{nk \times nk}$。由于所有基础构件都是极小的数字，它们相乘相加后依然是多项式级别的小数字。
+    - 由于 $\mathbf{T}_A$ 可以分解为两个分块满秩三角阵的乘积，因此 $\mathbf{T}_A$ 本身也是满秩的。
 
 #### GPV 数字签名算法（Gentry-Peikert-Vaikuntanathan）
 - 组件：
@@ -383,18 +498,41 @@
 
 !!! fold info @Proof
     - **证明**：安全性规约，由攻破 EUF-CMA 安全性的敌手 $\mathcal{A}$ 来构造解决 SIS 问题的敌手 $\mathcal{B}$。
-        - $\mathcal{B}$ 的输入：$\mathbf{A}\in\mathbb{Z}_{q}^{n\times m}$
+        ![](image/image-21.png)
+        - **$\mathcal{B}$ 的输入**：$\mathbf{A}\in\mathbb{Z}_{q}^{n\times m}$
         - **$\mathcal{B}$ 的策略**：
-            - $\mathcal{B}$ 将公钥 $PK=\mathbf{A}$ 作为输入提供给 $\mathcal{A}$；设 $\mathcal{A}$ 进行的哈希查询次数为 $Q(\lambda)$，则 $\mathcal{B}$ 随机选择 $j \in [1, Q(\lambda)]$ 赌 $\mathcal{A}$ 最终输出的消息 $M^{*}=M_j$
-            - 当 $\mathcal{A}$ 使用 $M_i$ 进行第 $i$ 次**签名查询**时：$\mathcal{B}$ 由于本身不具备私钥 $SK=td$，无法生成合法的签名，因此向挑战者 $E_{id}$ 发起查询，拿到一个合法签名 $\sigma_i$，将 $\sigma_i$ 返回给 $\mathcal{A}$ 并自身记录 $\mathrm{H}( M_i) = \mathbf{A}\sigma_i$。
-                - 此时若 $\mathcal{A}$ 要对签名查询进行验证，计算时需要 $\mathrm{H}(M_i)$，只能向 $\mathcal{B}$ 查询哈希结果，必然能通过检验
-            <!-- - 当 $\mathcal{A}$ 使用 $(R_k, M_k)$ 进行第 $k$ 次**哈希查询**时：
-                - 若 $k=j$ 且 $M_j \notin \{M_i\}$，即 $\mathcal{A}$ 的第 $j$ 次哈希查询的消息 $M_j$ 没有在之前的签名查询中出现过，则 $\mathcal{B}$ 向 $E_{id}$ 输入 $R_j$ 并把返回的 $e_j$ 当作自己的哈希输出，并记录 $\mathrm{H}(R_j, M_j) = e_j$
-                - 若 $k=j$ 且 $M_j \in \{M_i\}$，则重新选择 $j \in [1, Q(\lambda)]$，直到满足 $M_j \notin \{M_i\}$
-                - 若 $k \in [1, Q(\lambda)] \setminus \{j\}$，$\mathcal{B}$ 查询是否有 $\mathrm{H}(R_k, M_k)$ 的记录：
-                    - 若有则直接返回
-                    - 若没有则随机选择 $e \leftarrow \mathbb{Z}_p$ 返回并记录 $\mathrm{H}(R_k, M_k) = e$
-            - 最终当 $\mathcal{A}$ 输出 $(M^{*}, \sigma^{*}=(R^{*}, z^{*}))$ 时，若 $M^{*}=M_j$，则 $\mathcal{B}$ 输出 $z^{*}$ 作为自己的输出，否则视为失败。 -->
+            - $\mathcal{B}$ 将公钥 $PK=\mathbf{A}$ 作为输入提供给 $\mathcal{A}$
+            - $\mathcal{B}$ 维护一个哈希查询表 $\mathcal{T}$ 记录 $\mathrm{H}(M)$ 与 $\sigma$ 的对应关系
+            - 当 $\mathcal{A}$ 使用 $M_i$ 进行**签名查询**时：$\mathcal{B}$ 首先检查 $\mathcal{T}$ 中是否存在 $M_i$ 的记录
+                - 若存在，$\mathcal{B}$ 将记录的 $\sigma_i$ 返回给 $\mathcal{A}$
+                - 否则，$\mathcal{B}$ 随机生成一个签名 $\sigma_i$ 返回给 $\mathcal{A}$，同时记录 $\mathrm{H}(M_i) = \mathbf{A}\sigma_i$ 到 $\mathcal{T}$ 中
+            - 当 $\mathcal{A}$ 使用 $M_j$ 进行**哈希查询**时：$\mathcal{B}$ 首先检查 $\mathcal{T}$ 中是否存在 $M_j$ 的记录
+                - 若存在，$\mathcal{B}$ 将记录的 $\mathrm{H}(M_j)$ 返回给 $\mathcal{A}$
+                - 否则，$\mathcal{B}$ 随机生成一个签名 $\sigma_j$，计算 $\mathrm{H}(M_j) = \mathbf{A}\sigma_j$ 并将 $\mathrm{H}(M_j)$ 返回给 $\mathcal{A}$，同时记录 $\mathrm{H}(M_j) = \mathbf{A}\sigma_j$ 到 $\mathcal{T}$ 中
+            - $\mathcal{A}$ 最终以不可忽略优势输出一对有效的消息签名对 $(M^*,\sigma^*)$，则 $\mathcal{A}$ 以不可忽略概率查询过 $\mathrm{H}(M^*)$，因此 $\mathcal{B}$ 已经记录了 $\mathrm{H}(M^*)$ 与某个签名 $\sigma$ 的对应关系
+                - 若 $\sigma^* = \sigma$，则失败
+                - 若 $\sigma^* \neq \sigma$，则有
+                    $$
+                    \begin{cases}
+                    \mathbf{A}(\sigma^* - \sigma) = \mathrm{H}(M^*) - \mathrm{H}(M^*) = \mathbf{0} \\
+                    \|\sigma^* - \sigma\| \leq \|\sigma^*\| + \|\sigma\| \leq 2B = B_s \implies
+                    \sigma^* - \sigma \in [-B_s,B_s]^{m}
+                    \end{cases}
+                    $$ 因此 $\sigma^* - \sigma$ 是 $\mathbf{A}$ 的一个非零的短整数解。可以证明当 $m \gg n \log q$ 时，$\sigma^* \neq \sigma$ 的概率为不可忽略的。
+        - **$\mathcal{B}$ 的输出**：$\mathbf{x} = \sigma^* - \sigma$
+        - **$\mathcal{B}$ 的优势**：
+            $$
+            \begin{aligned}
+            \mathrm{Adv}_{\mathcal{B}} &\geq \Pr\left[
+            \begin{array}{l}
+            (1)\ \mathcal{A} \text{ 成功攻破 GPV 签名算法的 EUF-CMA 安全性} \\
+            (2)\ \mathcal{A} \text{ 查询过 } M^{*} \text{ 的 Hash 值} \\
+            (3)\ \sigma^{*} \neq \sigma
+            \end{array}
+            \right] \\
+            &= \text{non-negl}(\lambda)
+            \end{aligned}
+            $$
 
 #### 基于 GPV 的身份基加密算法
 - 组件：
@@ -413,128 +551,3 @@
 - **解密算法** $M' \leftarrow \mathrm{Dec}(SK_{id},C=(\mathbf{c}_{1},c_{2}))$：
     1. 计算 $d:=c_{2}-\mathbf{c}_{1}^{\top}\cdot SK_{id} \in \mathbb{Z}_{q}$
     2. 如果 $q/4<d<3q/4$，输出 $M':=1$；否则，输出 $M':=0$
-
-<!--
-### 全同态加密(Fully Homomorphic Encryption ,FHE)
-**定义**：假设有两个参与者，Alice 和 Bob。Alice 拥有一条消息并计算出一个密文 $ct=\mathrm{Enc}(pk,m)$，然后将该密文发送给 Bob。全同态加密方案允许 Bob 对任意函数 $f$ 计算 $\mathrm{Enc}(pk,f(m))$。
-
-**例子**：ElGamal 加密 $ct=(g^{r},h^{r}\cdot m)$，保持乘法。
-
-**目标**：我们希望获得一种在 $\mathbb{Z}_{2}$ 上同时满足加法同态和乘法同态的加密方案。在 $\mathbb{Z}_{2}$ 中，加法对应于 XOR 门，而乘法则对应于 AND 门。我们可以将 $\mathbb{Z}_{2}^{n}$ 上的任意函数表示为由 XOR/AND 门组成的电路。因此，如果我们有一个 $\mathbb{Z}_{2}$ 上同时满足加法同态和乘法同态的加密方案，则可以支持任意布尔门的同态加密。
-
-**方法**:
-1. 构建一个支持有限次同态操作的部分同态加密方案(SWHE)。
-2. 通过“刷新”密文，将该SWHE方案转化为FHE。
-
-#### 基于格的部分同态加密基础构造
-$$- \text{Gen}: pk=A=\left(\begin{array}{c}\overline{A} \\ s^{T}\overline{A}+e^{T}\end{array}\right) ; sk=s=\left(\begin{array}{c}-\overline{s} \\ 1\end{array}\right);$$
-
-$$- \text{Enc}: C=Ar+\left(\begin{array}{c}0^{n-1} \\ \mu\lfloor q/2\rfloor\end{array}\right);$$
-
-$$- \text{Dec}: s^{T}C=e^{T}r+\mu\lfloor q/2\rfloor;$$
-
-**加法同态**：
-$$C_{1}=Ar_{1}+\mu_{1}\lfloor q/2\rfloor$$
-$$C_{2}=Ar_{2}+\mu_{2}\lfloor q/2\rfloor$$
-$$(C_{1}+C_{2})=A(r_{1}+r_{2})+(\mu_{1}+\mu_{2})\lfloor q/2\rfloor$$
-
-### 基于格的部分同态加密(Gentry-Sahai-Waters FHE)
-$$- \text{Gen}: pk=A=\left(\begin{array}{c}\overline{A} \\ s^{T}\overline{A}+e^{T}\end{array}\right) ; sk=s=\left(\begin{array}{c}-\overline{S} \\ 1\end{array}\right);$$
-
-$$- \text{Enc}: C=AR+\mu G;$$
-
-$$- \text{Dec}: s^{T}C=e^{T}R+\mu s^{T}G \to \quad\left(s^{T}C\right)G^{-1}\left(\frac{q}{2}I_{n}\right)=e^{T}RG^{-1}\left(\frac{q}{2}I_{n}\right)+\mu s^{T}\left(\frac{q}{2}I_{n}\right),$$
-
-约束条件：
-$$Bm^{2}<q/4;$$
-
-**加法同态**：
-$$C_{1}=AR_{1}+\mu_{1}G$$
-$$C_{2}=AR_{2}+\mu_{2}G$$
-$$(C_{1}+C_{2})=A(R_{1}+R_{2})+(\mu_{1}+\mu_{2})G;$$
-$$s^{T}(C_{1}+C_{2})=e^{T}(R_{1}+R_{2})+(\mu_{1}+\mu_{2})s^{T}G$$
-
-**乘法同态**：
-$$\begin{align*}
-C_{1}G^{-1}(C_{2})&=\left(AR_{1}+\mu_{1}G\right)G^{-1}\left(C_{2}\right) \\
-&=AR_{1}G^{-1}\left(C_{2}\right)+\mu_{1}C_{2} \\
-&=A\left(R_{1}G^{-1}\left(C_{2}\right)+\mu_{1}R_{2}\right)+\mu_{1}\mu_{2}G
-\end{align*}$$
-
-噪声约束：
-$$||R_{x}||\leq m|R_{1}|_{\infty}+|R_{2}|_{\infty}$$
-
-通过$d$次乘法，噪声的增长为 $m^{O(d)}<q/4$，$d≈\log q/ \log m$
-
-## Lattices in Practice
-### 优势
-- Very strong security proofs
-- The schemes are fairly simple
-- Relatively efficient
-
-### 主要缺点
-- Schemes have very large keys or ciphertext
-
-### 公钥密码系统性能对比
-⚫(Textbook) RSA (2048 bit message)：
-- Key-size: ≈ 2048 bits
-- Ciphertext length ≈ 2048 bits
-
-⚫LWE-based scheme (2048-bit message)：
-(m>2nlog q; Bm<q/4; n 是安全参数)
-$$Key-size:=m(n+\ell)\log q$$
-- Ciphertext length = $(n+\ell)\log q$
-
-公钥与密文形式：
-$$K=(A,H)=\left(A,A^{\top}S+E\right) \in\left(\mathbb{Z}_{q}^{n×m},\mathbb{Z}_{q}^{\ell×m}\right)$$
-$$C=\left(Ar,H^{T}r+m\left\lfloor {\frac {q}{2}}\right\rfloor \right) \in (\mathbb{Z}_{q}^{n},\mathbb{Z}_{q}^{\ell})$$
-
-### Source of Inefficiency
-基于格的密码方案的低效性来源主要为：
-- 矩阵$A$需要$O(mn)$的存储开销
-- 计算矩阵向量乘法需要$O(mn)$的时间开销
-
-### A More Efficient Idea
-通过将矩阵运算转化为**多项式环上的运算**，减少存储和计算开销，核心为利用环$\mathbb{Z}_{q}[x]/(x^n-1)$和$\mathbb{Z}_{q}[x]/(x^n+1)$的结构特性，将矩阵向量乘法转化为多项式乘法，且可通过FFT加速。
-
-#### 多项式环$\mathbb{Z}_{q}[x]/(x^n-1)$介绍
-⚫$\mathbb{Z}$ = 整数集
-⚫$\mathbb{Z}_{q}$ = 模$q$整数集
-⚫$\mathbb{Z}_{q}[x]$ = 系数在$\mathbb{Z}_{q}$上的多项式集合
-  - 例子（$q=3$）：$1+x$，$2+x^{2}+x^{1001}$
-⚫$\mathbb{Z}_{q}[x]/(x^n-1)$ = 系数在$\mathbb{Z}_{q}$上、次数至多为$n-1$的多项式集合
-  - 例子（$q=3$且$n=4$）：$1+x$，$2+x+x^{2}$
-
-#### $\mathbb{Z}_{q}[x]/(x^n-1)$中的运算
-##### 加法
-- 多项式系数模$q$相加
-- 例子（$q=3$且$n=4$）：
-$$\left(1+x^{2}\right)+\left(2+x^{2}+x^{3}\right)=2x^{2}+x^{3}$$
-
-##### 乘法
-- 多项式相乘后，系数模$q$，且$x^n \equiv 1$（即消去次数≥$n$的项）
-- 例子（$q=3$且$n=4$）：
-$$\left(1+x^{2}\right)*\left(2+x^{2}+x^{3}\right)=2+3x^{2}+x^{3}+x^{4}+x^{5}=x+x^{3}$$
-
-#### 核心优化点
-将格密码中的矩阵向量乘法$Az$转化为多项式环$\mathbb{Z}_{q}[x]/(x^n-1)$中的多项式乘法，例如：
-$$(4+7x+2x^2+x^3)(1+x^3) +(10+13x+x^2+7x^3)(x+x^2) \in \mathbb{Z}_{q}[x]/(x^n-1)$$
-多项式乘法可通过**FFT**在$O(n\log n)$时间内完成，远快于原有的$O(mn)$矩阵乘法。
-
-### Ring-LWE 方案
-令$R_q=\mathbb{Z}_{q}[x]/(x^n+1)$，基于环的LWE问题假设：
-选取 $a \leftarrow R_{q}$，$s \leftarrow R_{q}$，$e \leftarrow \chi$（$\chi$为$R_q$上的离散高斯分布），$u \leftarrow R_{q}$，下面两种分布计算不可区分：
-1. $(a,s\cdot a+e)$
-2. $(a,u)$
-
-该假设可构造类Regev的环上加密方案，**Ring-LWE方案**的密钥与密文定义：
-- Secret Key $(sk)$: $s$，其中 $s \leftarrow R_{q}$
-- Public Key $(pk)$: $(a,b)$，其中 $a \leftarrow R_{q}$，$e \leftarrow \chi$ 且 $b=s\cdot a+e$
-- Ciphertext $(ct)$: $(a\cdot r,b\cdot r+\mu\cdot\lfloor q/2\rfloor)$，其中 $r \leftarrow R_{q}$ 且 $\mu \in R_{q}$ 是待加密消息。
-
-### Ring-LWE scheme 相比标准LWE的优势
-- Shorter Public Keys: 公钥仅由两个环元素$(a,b)$组成，而非向量或矩阵。
-- Reduced Ciphertext Blowup: 单个环元素$\mu \in R_{q}$仅需两个环元素$(a\cdot r,b\cdot r+\mu\cdot\left\lfloor\frac{q}{2}\right\rceil)$即可加密。
-- Efficient Multiplication: 环乘法可视为矩阵向量乘法，且能通过FFT加速计算。
-
-谢谢!
