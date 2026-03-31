@@ -90,7 +90,7 @@
 - **参数**：LWE 参数 $(n,m,q,B_{\chi},\chi)$ 满足：
     1. $m \cdot B_{\chi} < q/4$
     2. $m \geq 2n \cdot \log q$
-- **计算性 LWE 问题**（CLWE）：$n,m$ 为整数，$q$ 为正整数，$\chi$ 为区间 $[-B_{\chi}, B_{\chi}]$ 上的概率分布。均匀选取 $\mathbf{A} \leftarrow \mathbb{Z}_{q}^{n\times m}$，$\mathbf{s} \leftarrow \mathbb{Z}_{q}^{n}$，根据 $\chi$ 分布选取 $\mathbf{e} \leftarrow[-B_{\chi}, B_{\chi}]^{m}$，计算 $\mathbf{z}:=\mathbf{A}^{\top} \mathbf{s}+\mathbf{e} \in \mathbb{Z}_{q}^{m}$。
+- **计算性 LWE 问题**（CLWE）：$n,m$ 为整数，$q$ 为素数，$\chi$ 为区间 $[-B_{\chi}, B_{\chi}]$ 上的概率分布。均匀选取 $\mathbf{A} \leftarrow \mathbb{Z}_{q}^{n\times m}$，$\mathbf{s} \leftarrow \mathbb{Z}_{q}^{n}$，根据 $\chi$ 分布选取 $\mathbf{e} \leftarrow[-B_{\chi}, B_{\chi}]^{m}$，计算 $\mathbf{z}:=\mathbf{A}^{\top} \mathbf{s}+\mathbf{e} \in \mathbb{Z}_{q}^{m}$。
     - **输入**：$(\mathbf{A}, \mathbf{z})$
     - **输出**：$\mathbf{s}$
     - **计算性 LWE 问题困难**：任意 PPT 敌手的优势是可忽略的，即
@@ -99,7 +99,7 @@
         $$
     - 直觉：定义格 $\mathcal{L}(\mathbf{A})=\{\mathbf{x} \in \mathbb{Z}^{m} \mid \mathbf{x}=\mathbf{A}^{T} \mathbf{s} \pmod q, \mathbf{s} \in \mathbb{Z}_{q}^{n}\}$，则 $\mathbf{z}$ 是 $\mathcal{L}(\mathbf{A})$ 中某个格点附近的一个点，$\mathbf{e}$ 是噪声。
         ![](image/image-18.png)
-- **判定性 LWE 问题**（DLWE）：$n,m$ 为整数，$q$ 为正整数，$\chi$ 为区间 $[-B_{\chi}, B_{\chi}]$ 上的概率分布。均匀选取 $\mathbf{A} \leftarrow \mathbb{Z}_{q}^{n\times m}$，$\mathbf{s} \leftarrow \mathbb{Z}_{q}^{n}$，根据 $\chi$ 分布选取 $\mathbf{e} \leftarrow[-B_{\chi}, B_{\chi}]^{m}$，计算 $\mathbf{z}_{0}:=\mathbf{A}^{\top} \mathbf{s}+\mathbf{e} \in \mathbb{Z}_{q}^{m}$，$\mathbf{z}_{1} \leftarrow \mathbb{Z}_{q}^{m}$，均匀选取 $\beta \leftarrow\{0,1\}$。
+- **判定性 LWE 问题**（DLWE）：$n,m$ 为整数，$q$ 为素数，$\chi$ 为区间 $[-B_{\chi}, B_{\chi}]$ 上的概率分布。均匀选取 $\mathbf{A} \leftarrow \mathbb{Z}_{q}^{n\times m}$，$\mathbf{s} \leftarrow \mathbb{Z}_{q}^{n}$，根据 $\chi$ 分布选取 $\mathbf{e} \leftarrow[-B_{\chi}, B_{\chi}]^{m}$，计算 $\mathbf{z}_{0}:=\mathbf{A}^{\top} \mathbf{s}+\mathbf{e} \in \mathbb{Z}_{q}^{m}$，$\mathbf{z}_{1} \leftarrow \mathbb{Z}_{q}^{m}$，均匀选取 $\beta \leftarrow\{0,1\}$。
     - **输入**：$(\mathbf{A}, \mathbf{z}_{\beta})$
     - **输出**：$\beta$
     - **判定性 LWE 问题困难**：任意 PPT 敌手的优势是可忽略的，即
@@ -296,12 +296,12 @@
 
 ### SIS 困难问题与 GPV 签名算法
 #### SIS 问题（Short Integer Solution）
-- **SIS 问题**：$n,m$ 为整数，$q$ 为正整数，$B_{s}$ 为整数。均匀选取 $\mathbf{A} \leftarrow\mathbb{Z}_{q}^{n\times m}$。
+- **SIS 问题**：$n,m$ 为整数，$q$ 为素数，$B_{s}$ 为整数。均匀选取 $\mathbf{A} \leftarrow\mathbb{Z}_{q}^{n\times m}$。
     - **输入**：$\mathbf{A}$
     - **输出**：$\mathbf{x}\in\mathbb{Z}_{q}^{m}$ 满足
         1. $\mathbf{Ax}=\mathbf{0}\in\mathbb{Z}_{q}^{n}$
         2. $\mathbf{x}\neq\mathbf{0}$
-        3. $\mathbf{x}\in[-B_{s},B_{s}]^{m}$
+        3. $\mathbf{x}\in[-B_{s},B_{s}]^{m}$（Short）
     - **SIS 问题困难**：任意 PPT 敌手的优势是可忽略的，即
         $$
         \Pr(\text{find such } \mathbf{x}) = \mathrm{negl}(\lambda)
@@ -309,10 +309,36 @@
     - 观察:
         1. 如果没有对于 $\mathbf{x}$ 的限制，使用高斯消元法很容易求解 $\mathbf{x}$。
         2. 对于 SIS 问题，$m$ 越大越容易，$n$ 越大越困难。
-    - 直觉：定义格 $\mathcal{L}(\mathbf{A})=\{\mathbf{x}\in\mathbb{Z}^{m} \mid \mathbf{Ax}\equiv\mathbf{0}\pmod q\}$，SIS 问题要求找到 $\mathcal{L}(\mathbf{A})$ 中一个非零的短向量。
+    - 直觉：定义对偶格 $\mathcal{L}(\mathbf{A})^\bot =\{\mathbf{x}\in\mathbb{Z}^{m} \mid \mathbf{Ax}\equiv\mathbf{0}\pmod q\}$，SIS 问题要求找到 $\mathcal{L}(\mathbf{A})$ 中一个非零的短向量。
         ![](image/image-19.png)
 - **定理**：如果 $m\cdot B_{\chi}\cdot B_{s}<q/4$，则 **判定性 LWE 问题 $(n,m,q,\chi)$ 困难** $\implies$ **SIS 问题 $(n,m,q,B_{s})$ 困难**
-    - 证明：由解决 SIS 问题的敌手 $\mathcal{A}$ 来构造解决判定性 LWE 问题的敌手 $\mathcal{B}$。
+
+!!! fold info @Proof
+    - **证明**：由解决 SIS 问题的敌手 $\mathcal{A}$ 来构造解决判定性 LWE 问题的敌手 $\mathcal{B}$。
+        - 若存在 PPT 敌手 $\mathcal{A}$ 能够以不可忽略的优势解决 SIS 问题 $(n,m,q,B_{s})$，则输入 $\mathbf{A}$，$\mathcal{A}$ 以不可忽略的优势输出 $\mathbf{x}\in[-B_{s},B_{s}]^{m}$ 满足 $\mathbf{Ax}=\mathbf{0}\in\mathbb{Z}_{q}^{n}$。
+        - 此时考虑 $\mathbf{z}_\beta^\top \cdot \mathbf{x}$：
+            - 当 $\beta=0$ 时，$\mathbf{z}_{0}=\mathbf{A}^{\top}\mathbf{s}+\mathbf{e}$，因此
+                $$
+                \mathbf{z}_{0}^{\top}\cdot \mathbf{x}=\mathbf{s}^{\top}\mathbf{A}\mathbf{x}+\mathbf{e}^{\top}\mathbf{x}=\mathbf{e}^{\top}\mathbf{x}=\sum_{i=1}^{m} e_i x_i \in[-mB_{\chi}B_{s},mB_{\chi}B_{s}] \subseteq(-q/4,q/4)
+                $$
+            - 当 $\beta=1$ 时，$\mathbf{z}_{1}\leftarrow\mathbb{Z}_{q}^{m}$，因此 $\mathbf{z}_{1}^{\top}\cdot \mathbf{x}$ 在 $\mathbb{Z}_{q}$ 上均匀分布，则 $\mathbf{z}_{1}^{\top}\cdot \mathbf{x} \in(-q/4,q/4)$ 的概率为 $1/2$。
+        - $\mathcal{B}$ 的输出：
+            $$
+            \mathrm{output}_\mathcal{B} = \begin{cases}
+            0 & \mathbf{z}^\top\cdot \mathbf{x} \in(0,\frac{q}{4})\cup(\frac{3q}{4},q) \\
+            1 & \text{otherwise}
+            \end{cases}
+            $$
+        - $\mathcal{B}$ 的优势
+            $$
+            \begin{aligned}
+            \mathrm{Adv}_\mathcal{B} &= \left|\Pr(\mathrm{output}_\mathcal{B}=\beta) - \frac{1}{2}\right| \\
+            &= \frac{1}{2} \cdot \left|\Pr(\mathrm{output}_\mathcal{B}=0 \mid \beta=0) - \Pr(\mathrm{output}_\mathcal{B}=0 \mid \beta=1)\right| \\
+            &= \frac{1}{2} \cdot \left|\left(\mathrm{Adv}_\mathcal{A} + \frac{1}{2}(1 - \mathrm{Adv}_\mathcal{A}) \right) - \frac{1}{2} \right| \\
+            &= \frac{1}{4} \cdot \mathrm{Adv}_\mathcal{A} = \text{non-negl}(\lambda)
+            \end{aligned}
+            $$
+        - 因此 $\mathcal{B}$ 以不可忽略的优势攻破判定性 LWE 问题，与假设矛盾。
 
 #### 原像可采样函数 PSF（Preimage Sampleable Function）
 - PSF 参数：$(n,m,q,B)$
@@ -324,7 +350,7 @@
         f_{A}:\mathbb{Z}_{q}^{m}&\to\mathbb{Z}_{q}^{n} \\
         \mathbf{x} &\mapsto \mathbf{Ax}
         \end{aligned}
-        $$
+        $$ 则给出 $x$ 计算 $f_{A}(x)$ 是高效的；给出 $y$ 和陷门信息 $td$ 计算 $x$ 满足 $f_{A}(x)=y$ 是高效的；但给出 $y$ 没有陷门信息 $td$ 计算 $x$ 满足 $f_{A}(x)=y$ 是困难的。
 - **正向采样算法**：$(\mathbf{x}\in\mathbb{Z}_{q}^{m},\mathbf{y}\in\mathbb{Z}_{q}^{n})\leftarrow \mathrm{SampleTuple}(\mathbf{A})$
     - 向量 $\mathbf{x}$ 满足 $\mathbf{x}\in[-B,B]^{m}$
     - 向量 $\mathbf{y}$ 满足 $\mathbf{y}=\mathbf{A}\mathbf{x}$ 且在 $\mathbb{Z}_{q}^{n}$ 上均匀分布
@@ -333,6 +359,10 @@
 - **关键性质**（GPV08）：下面两种 $(\mathbf{x}\in\mathbb{Z}_{q}^{m},\mathbf{y}\in\mathbb{Z}_{q}^{n})$ 的分布一样:
     - $(\mathbf{x}\in\mathbb{Z}_{q}^{m},\mathbf{y}\in\mathbb{Z}_{q}^{n})\leftarrow \mathrm{SampleTuple}(\mathbf{A})$
     - 先均匀选取 $\mathbf{y}\leftarrow\mathbb{Z}_{q}^{n}$，再调用 $\mathbf{x}\leftarrow \mathrm{SamplePre}(td,\mathbf{A},\mathbf{y})$
+
+#### MP12 陷门生成算法
+<!--  -->
+- 如果得到了陷门，那么 SIS 问题、LWE 问题都不再困难！
 
 #### GPV 数字签名算法（Gentry-Peikert-Vaikuntanathan）
 - 组件：
@@ -345,9 +375,166 @@
     1. 计算 $\mathrm{H}(M)\in\mathbb{Z}_{q}^{n}$
     2. 调用并输出 $\sigma\in\mathbb{Z}_{q}^{m}\leftarrow \mathrm{SamplePre}(td,\mathbf{A},\mathrm{H}(M))$
 - **验证算法** $0/1\leftarrow \mathrm{Verify}(PK,M,\sigma)$：
-    1. 验证  $\sigma\in[-B,B]^{m} \land \mathbf{A}\sigma\equiv \mathrm{H}(M) \pmod{q}$
+    1. 验证  $\sigma\in[-B,B]^{m} \land \mathbf{A}\sigma = \mathrm{H}(M)$
     2. 如果验证通过，输出 $1$；否则输出 $0$
 
-#### GPV 数字签名算法的 EUF-CMA安全性
+#### GPV 数字签名算法的 EUF-CMA 安全性
 - **定理**：**SIS 问题 $(n,m,q,B_{s}=2B)$ 困难** + **$\mathrm{H}$ 为 RO** $\implies$ **GPV 签名算法 EUF-CMA 安全**
-    - 证明：安全性规约，由攻破 EUF-CMA 安全性的敌手 $\mathcal{A}$ 来构造解决 SIS 问题的敌手 $\mathcal{B}$。
+
+!!! fold info @Proof
+    - **证明**：安全性规约，由攻破 EUF-CMA 安全性的敌手 $\mathcal{A}$ 来构造解决 SIS 问题的敌手 $\mathcal{B}$。
+        - $\mathcal{B}$ 的输入：$\mathbf{A}\in\mathbb{Z}_{q}^{n\times m}$
+        - **$\mathcal{B}$ 的策略**：
+            - $\mathcal{B}$ 将公钥 $PK=\mathbf{A}$ 作为输入提供给 $\mathcal{A}$；设 $\mathcal{A}$ 进行的哈希查询次数为 $Q(\lambda)$，则 $\mathcal{B}$ 随机选择 $j \in [1, Q(\lambda)]$ 赌 $\mathcal{A}$ 最终输出的消息 $M^{*}=M_j$
+            - 当 $\mathcal{A}$ 使用 $M_i$ 进行第 $i$ 次**签名查询**时：$\mathcal{B}$ 由于本身不具备私钥 $SK=td$，无法生成合法的签名，因此向挑战者 $E_{id}$ 发起查询，拿到一个合法签名 $\sigma_i$，将 $\sigma_i$ 返回给 $\mathcal{A}$ 并自身记录 $\mathrm{H}( M_i) = \mathbf{A}\sigma_i$。
+                - 此时若 $\mathcal{A}$ 要对签名查询进行验证，计算时需要 $\mathrm{H}(M_i)$，只能向 $\mathcal{B}$ 查询哈希结果，必然能通过检验
+            <!-- - 当 $\mathcal{A}$ 使用 $(R_k, M_k)$ 进行第 $k$ 次**哈希查询**时：
+                - 若 $k=j$ 且 $M_j \notin \{M_i\}$，即 $\mathcal{A}$ 的第 $j$ 次哈希查询的消息 $M_j$ 没有在之前的签名查询中出现过，则 $\mathcal{B}$ 向 $E_{id}$ 输入 $R_j$ 并把返回的 $e_j$ 当作自己的哈希输出，并记录 $\mathrm{H}(R_j, M_j) = e_j$
+                - 若 $k=j$ 且 $M_j \in \{M_i\}$，则重新选择 $j \in [1, Q(\lambda)]$，直到满足 $M_j \notin \{M_i\}$
+                - 若 $k \in [1, Q(\lambda)] \setminus \{j\}$，$\mathcal{B}$ 查询是否有 $\mathrm{H}(R_k, M_k)$ 的记录：
+                    - 若有则直接返回
+                    - 若没有则随机选择 $e \leftarrow \mathbb{Z}_p$ 返回并记录 $\mathrm{H}(R_k, M_k) = e$
+            - 最终当 $\mathcal{A}$ 输出 $(M^{*}, \sigma^{*}=(R^{*}, z^{*}))$ 时，若 $M^{*}=M_j$，则 $\mathcal{B}$ 输出 $z^{*}$ 作为自己的输出，否则视为失败。 -->
+
+#### 基于 GPV 的身份基加密算法
+- 组件：
+    1. PSF：参数 $(n,m,q,B)$
+    2. Hash Function $\mathrm{H}:\{0,1\}^{*}\to\mathbb{Z}_{q}^{n}$
+- **密钥生成算法** $(PK,SK) \leftarrow \mathrm{Gen}(1^{\lambda})$：类似于GPV
+    1. 调用 $(\mathbf{A},td) \leftarrow \mathrm{SampleA}(1^{\lambda})$
+    2. 输出 $PK = \mathbf{A}$, $SK = td$
+- **私钥派生算法** $SK_{id} \leftarrow \mathrm{Derive}(SK,id)$：身份空间为 $\{0,1\}^*$
+    1. 计算并输出 $SK_{id} := \mathrm{SamplePre}(td,\mathbf{A},H(id)) \in\mathbb{Z}_{q}^{m}$
+- **加密算法** $C \leftarrow \mathrm{Enc}(PK,id,M)$：消息空间为 $\mathbb{M}=\{0,1\}$
+    1. 均匀选取 $\mathbf{r} \leftarrow \mathbb{Z}_{q}^{n}$，$\mathbf{e}_{1} \leftarrow_{\chi}[-B_{x},B_{x}]^{m}$，$\mathbf{e}_2 \leftarrow_{\chi}[-B_x,B_x]$
+    2. 计算 $\mathbf{c}_{1}:=\mathbf{A}^{\top}\mathbf{r}+\mathbf{e}_{1} \in \mathbb{Z}_{q}^{m}$
+    3. 计算 $c_{2}:=\mathbf{r}^{\top}H(id)+\mathbf{e}_{2}+M\cdot\lfloor q/2\rceil \in \mathbb{Z}_{q}$
+    4. 输出 $C:=(\mathbf{c}_{1},c_{2})$
+- **解密算法** $M' \leftarrow \mathrm{Dec}(SK_{id},C=(\mathbf{c}_{1},c_{2}))$：
+    1. 计算 $d:=c_{2}-\mathbf{c}_{1}^{\top}\cdot SK_{id} \in \mathbb{Z}_{q}$
+    2. 如果 $q/4<d<3q/4$，输出 $M':=1$；否则，输出 $M':=0$
+
+<!--
+### 全同态加密(Fully Homomorphic Encryption ,FHE)
+**定义**：假设有两个参与者，Alice 和 Bob。Alice 拥有一条消息并计算出一个密文 $ct=\mathrm{Enc}(pk,m)$，然后将该密文发送给 Bob。全同态加密方案允许 Bob 对任意函数 $f$ 计算 $\mathrm{Enc}(pk,f(m))$。
+
+**例子**：ElGamal 加密 $ct=(g^{r},h^{r}\cdot m)$，保持乘法。
+
+**目标**：我们希望获得一种在 $\mathbb{Z}_{2}$ 上同时满足加法同态和乘法同态的加密方案。在 $\mathbb{Z}_{2}$ 中，加法对应于 XOR 门，而乘法则对应于 AND 门。我们可以将 $\mathbb{Z}_{2}^{n}$ 上的任意函数表示为由 XOR/AND 门组成的电路。因此，如果我们有一个 $\mathbb{Z}_{2}$ 上同时满足加法同态和乘法同态的加密方案，则可以支持任意布尔门的同态加密。
+
+**方法**:
+1. 构建一个支持有限次同态操作的部分同态加密方案(SWHE)。
+2. 通过“刷新”密文，将该SWHE方案转化为FHE。
+
+#### 基于格的部分同态加密基础构造
+$$- \text{Gen}: pk=A=\left(\begin{array}{c}\overline{A} \\ s^{T}\overline{A}+e^{T}\end{array}\right) ; sk=s=\left(\begin{array}{c}-\overline{s} \\ 1\end{array}\right);$$
+
+$$- \text{Enc}: C=Ar+\left(\begin{array}{c}0^{n-1} \\ \mu\lfloor q/2\rfloor\end{array}\right);$$
+
+$$- \text{Dec}: s^{T}C=e^{T}r+\mu\lfloor q/2\rfloor;$$
+
+**加法同态**：
+$$C_{1}=Ar_{1}+\mu_{1}\lfloor q/2\rfloor$$
+$$C_{2}=Ar_{2}+\mu_{2}\lfloor q/2\rfloor$$
+$$(C_{1}+C_{2})=A(r_{1}+r_{2})+(\mu_{1}+\mu_{2})\lfloor q/2\rfloor$$
+
+### 基于格的部分同态加密(Gentry-Sahai-Waters FHE)
+$$- \text{Gen}: pk=A=\left(\begin{array}{c}\overline{A} \\ s^{T}\overline{A}+e^{T}\end{array}\right) ; sk=s=\left(\begin{array}{c}-\overline{S} \\ 1\end{array}\right);$$
+
+$$- \text{Enc}: C=AR+\mu G;$$
+
+$$- \text{Dec}: s^{T}C=e^{T}R+\mu s^{T}G \to \quad\left(s^{T}C\right)G^{-1}\left(\frac{q}{2}I_{n}\right)=e^{T}RG^{-1}\left(\frac{q}{2}I_{n}\right)+\mu s^{T}\left(\frac{q}{2}I_{n}\right),$$
+
+约束条件：
+$$Bm^{2}<q/4;$$
+
+**加法同态**：
+$$C_{1}=AR_{1}+\mu_{1}G$$
+$$C_{2}=AR_{2}+\mu_{2}G$$
+$$(C_{1}+C_{2})=A(R_{1}+R_{2})+(\mu_{1}+\mu_{2})G;$$
+$$s^{T}(C_{1}+C_{2})=e^{T}(R_{1}+R_{2})+(\mu_{1}+\mu_{2})s^{T}G$$
+
+**乘法同态**：
+$$\begin{align*}
+C_{1}G^{-1}(C_{2})&=\left(AR_{1}+\mu_{1}G\right)G^{-1}\left(C_{2}\right) \\
+&=AR_{1}G^{-1}\left(C_{2}\right)+\mu_{1}C_{2} \\
+&=A\left(R_{1}G^{-1}\left(C_{2}\right)+\mu_{1}R_{2}\right)+\mu_{1}\mu_{2}G
+\end{align*}$$
+
+噪声约束：
+$$||R_{x}||\leq m|R_{1}|_{\infty}+|R_{2}|_{\infty}$$
+
+通过$d$次乘法，噪声的增长为 $m^{O(d)}<q/4$，$d≈\log q/ \log m$
+
+## Lattices in Practice
+### 优势
+- Very strong security proofs
+- The schemes are fairly simple
+- Relatively efficient
+
+### 主要缺点
+- Schemes have very large keys or ciphertext
+
+### 公钥密码系统性能对比
+⚫(Textbook) RSA (2048 bit message)：
+- Key-size: ≈ 2048 bits
+- Ciphertext length ≈ 2048 bits
+
+⚫LWE-based scheme (2048-bit message)：
+(m>2nlog q; Bm<q/4; n 是安全参数)
+$$Key-size:=m(n+\ell)\log q$$
+- Ciphertext length = $(n+\ell)\log q$
+
+公钥与密文形式：
+$$K=(A,H)=\left(A,A^{\top}S+E\right) \in\left(\mathbb{Z}_{q}^{n×m},\mathbb{Z}_{q}^{\ell×m}\right)$$
+$$C=\left(Ar,H^{T}r+m\left\lfloor {\frac {q}{2}}\right\rfloor \right) \in (\mathbb{Z}_{q}^{n},\mathbb{Z}_{q}^{\ell})$$
+
+### Source of Inefficiency
+基于格的密码方案的低效性来源主要为：
+- 矩阵$A$需要$O(mn)$的存储开销
+- 计算矩阵向量乘法需要$O(mn)$的时间开销
+
+### A More Efficient Idea
+通过将矩阵运算转化为**多项式环上的运算**，减少存储和计算开销，核心为利用环$\mathbb{Z}_{q}[x]/(x^n-1)$和$\mathbb{Z}_{q}[x]/(x^n+1)$的结构特性，将矩阵向量乘法转化为多项式乘法，且可通过FFT加速。
+
+#### 多项式环$\mathbb{Z}_{q}[x]/(x^n-1)$介绍
+⚫$\mathbb{Z}$ = 整数集
+⚫$\mathbb{Z}_{q}$ = 模$q$整数集
+⚫$\mathbb{Z}_{q}[x]$ = 系数在$\mathbb{Z}_{q}$上的多项式集合
+  - 例子（$q=3$）：$1+x$，$2+x^{2}+x^{1001}$
+⚫$\mathbb{Z}_{q}[x]/(x^n-1)$ = 系数在$\mathbb{Z}_{q}$上、次数至多为$n-1$的多项式集合
+  - 例子（$q=3$且$n=4$）：$1+x$，$2+x+x^{2}$
+
+#### $\mathbb{Z}_{q}[x]/(x^n-1)$中的运算
+##### 加法
+- 多项式系数模$q$相加
+- 例子（$q=3$且$n=4$）：
+$$\left(1+x^{2}\right)+\left(2+x^{2}+x^{3}\right)=2x^{2}+x^{3}$$
+
+##### 乘法
+- 多项式相乘后，系数模$q$，且$x^n \equiv 1$（即消去次数≥$n$的项）
+- 例子（$q=3$且$n=4$）：
+$$\left(1+x^{2}\right)*\left(2+x^{2}+x^{3}\right)=2+3x^{2}+x^{3}+x^{4}+x^{5}=x+x^{3}$$
+
+#### 核心优化点
+将格密码中的矩阵向量乘法$Az$转化为多项式环$\mathbb{Z}_{q}[x]/(x^n-1)$中的多项式乘法，例如：
+$$(4+7x+2x^2+x^3)(1+x^3) +(10+13x+x^2+7x^3)(x+x^2) \in \mathbb{Z}_{q}[x]/(x^n-1)$$
+多项式乘法可通过**FFT**在$O(n\log n)$时间内完成，远快于原有的$O(mn)$矩阵乘法。
+
+### Ring-LWE 方案
+令$R_q=\mathbb{Z}_{q}[x]/(x^n+1)$，基于环的LWE问题假设：
+选取 $a \leftarrow R_{q}$，$s \leftarrow R_{q}$，$e \leftarrow \chi$（$\chi$为$R_q$上的离散高斯分布），$u \leftarrow R_{q}$，下面两种分布计算不可区分：
+1. $(a,s\cdot a+e)$
+2. $(a,u)$
+
+该假设可构造类Regev的环上加密方案，**Ring-LWE方案**的密钥与密文定义：
+- Secret Key $(sk)$: $s$，其中 $s \leftarrow R_{q}$
+- Public Key $(pk)$: $(a,b)$，其中 $a \leftarrow R_{q}$，$e \leftarrow \chi$ 且 $b=s\cdot a+e$
+- Ciphertext $(ct)$: $(a\cdot r,b\cdot r+\mu\cdot\lfloor q/2\rfloor)$，其中 $r \leftarrow R_{q}$ 且 $\mu \in R_{q}$ 是待加密消息。
+
+### Ring-LWE scheme 相比标准LWE的优势
+- Shorter Public Keys: 公钥仅由两个环元素$(a,b)$组成，而非向量或矩阵。
+- Reduced Ciphertext Blowup: 单个环元素$\mu \in R_{q}$仅需两个环元素$(a\cdot r,b\cdot r+\mu\cdot\left\lfloor\frac{q}{2}\right\rceil)$即可加密。
+- Efficient Multiplication: 环乘法可视为矩阵向量乘法，且能通过FFT加速计算。
+
+谢谢!
