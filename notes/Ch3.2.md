@@ -70,10 +70,10 @@
     - $C$ 的长度为 $n$
     - $C$ 的维数为 $k \leq n$，即 $C$ 可以由 $k$ 个线性无关的向量生成
     - $C$ 的码率为 $\frac{k}{n} \leq 1$，即存在冗余
-    - $C$ 中的元素称为码字
+    - $C$ 中的元素称为码字，表示为列向量 $c=(c_{1},\cdots,c_{n})^{\top}$ 或列向量 $c^{\top}$。
 - **线性码的表示与生成矩阵**：设 $G \in F_{q}^{k \times n}$ 的行向量 $g_{1},\cdots,g_{k}$ 构成 $C^{\perp}$ 的一组基，则 $C$ 可表示为
     $$
-    C=\left\{m^{\top} G: m \in F_{q}^{k}\right\},\quad G=\begin{pmatrix} g_{1} \\ \vdots \\ g_{k} \end{pmatrix}_{k \times n}
+    C=\left\{c \in F_{q}^{n}: c=G^{\top} m, m \in F_{q}^{k}\right\},\quad G=\begin{pmatrix} g_{1} \\ \vdots \\ g_{k} \end{pmatrix}_{k \times n}
     $$
 
     反之，任意秩为 $k$ 的矩阵 $G \in F_{q}^{k\times n}$ 都定义了一个 $[n, k]_{q}$ 码，称 $G$ 为 $C$ 的生成矩阵。
@@ -119,68 +119,62 @@
         1. $d_{min}(C)\leq t \iff H$ 存在 $t$ 个线性相关的列
         2. $d_{min}(C)\geq t \iff H$ 的任意 $t-1$ 个列都线性无关
     - **推论（Singleton界）**：极小汉明距离满足 $d_{min}(C) \leq n-k+1$。
-<!-- 
 
-### Error-correction codes-Examples
-**例子1：汉明码**
-汉明码$C=[2^{r}-1,2^{r}-1-r]_{2}$由$r \times(2^{r}-1)$的校验矩阵构造，其第$i$列是$1 ≤i ≤2^{r}-1$的二进制表示。
+### 纠错码
+#### 纠错码示例
+- **汉明码**：设 $r \geq 2$，汉明码 $C=[2^{r}-1,2^{r}-1-r]_{2}$ 由 $r \times(2^{r}-1)$ 的校验矩阵构造，其第 $i$ 列是 $1 \leq i \leq 2^{r}-1$ 的二进制表示。
+    - 取码长 $n=7$、码维数 $k=4$ 的汉明码（$r=3$），其生成矩阵为
+        $$
+        G=\begin{pmatrix}
+        1 & 0 & 0 & 0 & 1 & 1 & 0 \\
+        0 & 1 & 0 & 0 & 1 & 0 & 1 \\
+        0 & 0 & 1 & 0 & 0 & 1 & 1 \\
+        0 & 0 & 0 & 1 & 1 & 1 & 1
+        \end{pmatrix}
+        $$
 
-取码长$n=7$、码维数$k=4$的汉明码，其生成矩阵为
-$$G=\left(\begin{array}{lllllll} 1 & 0 & 0 & 0 & 1 & 1 & 0 \\ 0 & 1 & 0 & 0 & 1 & 0 & 1 \\ 0 & 0 & 1 & 0 & 0 & 1 & 1 \\ 0 & 0 & 0 & 1 & 1 & 1 & 1 \end{array}\right)$$
-$c=(1001) G=(1001001)$是该码的一个码字。
+        则 $c^{\top}=\begin{pmatrix} 1 & 0 & 0 & 1 \end{pmatrix} \cdot G=\begin{pmatrix} 1 & 0 & 0 & 1 & 1 & 1 & 1 \end{pmatrix}$是该码的一个码字。
 
-其校验矩阵为
-$$H=\left(\begin{array}{lllllll}1 & 1 & 0 & 1 & 1 & 0 & 0 \\ 1 & 0 & 1 & 1 & 0 & 1 & 0 \\ 0 & 1 & 1 & 1 & 0 & 0 & 1\end{array}\right)$$
+        其校验矩阵为
+        $$
+        H=\begin{pmatrix}
+        1 & 1 & 0 & 1 & 1 & 0 & 0 \\
+        1 & 0 & 1 & 1 & 0 & 1 & 0 \\
+        0 & 1 & 1 & 1 & 0 & 0 & 1
+        \end{pmatrix}
+        $$
 
-满足$H c=0$，且满足$G=(I | Q)$、$H=(Q^{T} | I)$。
+        满足 $Hc=0$，且满足 $G=\begin{pmatrix} I & Q \end{pmatrix}$、$H=\begin{pmatrix} Q^{T} & I \end{pmatrix}$。
+- **广义 Reed-Solomon 码**（GRS）：设 $z \in(F_{q}^{*})^{n}$，$\{\alpha_{1},\cdots,\alpha_{n}\}$ 为 $F_{q}$ 中 $n$ 个两两不同的元素，$k \leq n$，广义 Reed-Solomon 码 $GRS[n,k]$ 定义为
+    $$
+    GRS(n, k)=\{(z_{1} f(\alpha_{1}), \cdots, z_{n} f(\alpha_{n})) \mid f \in F_{q}[x],\deg(f)<k\}
+    $$
 
-**例子2：广义Reed-Solomon码（GRS）**
-设$z \in(F_{q}^{*})^{n}$，$\{\alpha_{1},\cdots,\alpha_{n}\}$为$F_{q}$中$n$个两两不同的元素，$k ≤n$，广义Reed-Solomon码$GRS[n,k]$定义为
-$$GRS(n, k)=\{(z_{1} f(\alpha_{1}), \cdots, z_{n} f(\alpha_{n})) \mid f \in F_{q}[X],\deg(f)<k\}$$
+    $GRS(n,k)$ 是$[n, k]_{q}$ 码。
+    - RS 码：特别地，RS 码是所有 $z_{1}=\cdots=z_{n}=1$ 的 GRS 码。
+    - 维数：映射 $f(x) \in F_{q}[x]_{\deg(f)<k} \to (f(\alpha_{1}), \cdots, f(\alpha_{n})) \in F_{q}^{n}$ 为单射
+    - 表示：可由生成矩阵表示
+    - 对偶码：$GRS^{\perp}(n, k)$ 仍是 GRS 码，其对应的 $z'=(z_{i}')$ 满足 $z_{i}'=\frac{1}{z_{i} \prod_{j ≠i}(\alpha_{j}-\alpha_{i})}$
+    - 高效编码：对任意消息 $m \in F_{q}^{k}$，按 $c=G^{\top}m$ 编码的复杂度为 $O(n^2)$；若对 $n$ 和 $F_{q}$ 加以限制，可通过 FFT 实现 $O(n \log n)$ 的快速编码。
 
-$GRS(n,k)$是$[n, k]_{q}$码，特别地，Reed-Solomon码是所有$z_{1}=\cdots=z_{n}=1$的GRS码。
+#### 纠错码译码
+- **译码问题**：设发送码字 $c \in F_{q}^{n}$ 在信道中被错误向量 $e \in F_{q}^{n}$ 干扰，得到接收字 $r=c+e$，译码问题是在 $\mathrm{wt}_{H}(e)$ 较小的假设下，从 $r$ 恢复原始码字 $c$。
+- **唯一译码定理**：若 $\mathrm{wt}(e) \leq\left\lfloor\frac{d-1}{2}\right\rfloor$，则总能从 $r=c+e$ 中唯一重构（译码）出 $c \in C$。
+- **Reed-Solomon 码的唯一译码算法**：BERLEKAMP-WELCH 算法
+    - 该算法可在译码半径 $\frac{d-1}{2}$ 内对 RS 码进行唯一译码。
+    - **输入**：$r=(r_{1}, r_{2}, \cdots, r_{n})^{\top}=c+e \in \mathbb{F}_{q}^{n}$，其中 $c \in RS[n, k]$，$\mathrm{wt}(e)<\frac{d-1}{2}$
+    - **输出**：$f(x) \in \mathbb{F}_{q}[x]_{<k}$，满足 $(f(\alpha_{1}), \cdots, f(\alpha_{n}))=c$
+    - **算法步骤**：
+        1. 设错误定位多项式 $e(x)=\prod_{e_{i} ≠0}(x-\alpha_{i})$，则对所有 $i \in[1, n]$，有 $r_{i}e(\alpha _{i})=e(\alpha _{i})f(\alpha _{i})$
+        2. 设 $E(x)=\sum_{i=0}^{e} u_{i} x^{i}$，$Q(x)=\sum_{i=0}^{e+k-1} v_{i} x^{i}$，则线性方程组 $\forall i, r_{i} E\left(\alpha_{i}\right)=Q\left(\alpha_{i}\right)$ 是可解的
+        3. 输出$f(x)=Q(x) / E(x)$
+    - **译码复杂度**：$O(n^{3})$
 
-- 维数：映射$f(x) \in F_{q}[X]_{<k} \to (f(\alpha_{1}), \cdots, f(\alpha_{n})) \in F_{q}^{n}$为单射；
-- 表示：可由生成矩阵表示；
-- 对偶码：$GRS^{\perp}(n, k)$仍是GRS码，其对应的$z'=(z_{i}')$满足$z_{i}'=\frac{1}{z_{i} \prod_{j ≠i}(\alpha_{j}-\alpha_{i})}$（$i \in[1, n]$）；
-- 高效编码：对任意消息$m \in F_{q}^{k}$，按$c=mG$编码的复杂度为$O(n^2)$；若对$n$和$F_{q}$加以限制，可通过FFT实现$O(n log n)$的快速编码。
-
-### Error-correction-decoding
-设发送码字$c \in F_{q}^{n}$在信道中被错误向量$e \in F_{q}^{n}$干扰，得到接收字$r=c+e$，译码问题是在$wt_{H}(e)$较小的假设下，从$r$恢复原始码字$c$。
-
-#### 唯一错误纠正
-**定理（唯一译码）**
-若$wt(e) \leq\left\lfloor\frac{d-1}{2}\right\rfloor$，则总能从$r=c+e$中唯一重构（译码）出$c \in C$。
-
-**实际问题**：如何设计高效的译码器？
-
-#### Reed-Solomon码的唯一译码算法：BERLEKAMP-WELCH算法
-该算法可在译码半径$\frac{d-1}{2}$内对RS码进行唯一译码。
-- **输入**：$r=(r_{1}, r_{2}, \cdots, r_{n})=c+e \in \mathbb{F}_{q}^{n}$，其中$c \in RS[n, k]$，$wt(e)<\frac{d-1}{2}$；
-- **输出**：$f(x) \in \mathbb{F}_{q}[x]_{<k}$，满足$(f(\alpha_{1}), \cdots, f(\alpha_{n}))=c$。
-
-**算法步骤**：
-1. 设错误定位多项式$e(x)=\prod_{e_{i} ≠0}(x-\alpha_{i})$，则对所有$i \in[1, n]$，有$r_{i}e(\alpha _{i})=e(\alpha _{i})f(\alpha _{i})$；
-2. 设$E(x)=\sum_{i=0}^{e} u_{i} x^{i}$，$Q(x)=\sum_{i=0}^{e+k-1} v_{i} x^{i}$，则线性方程组$r_{i} E\left(\alpha_{i}\right)=Q\left(\alpha_{i}\right)$（$\forall i$）是可解的；
-3. 输出$f(x)=Q(x) / E(x)$。
-
-**译码复杂度**：$O(n^{3})$。
-
-### Syndrome
-**定义（伴随式）**
-设$H \in F_{q}^{(n-k) ×n}$，接收字$r \in F_{q}^{n}$关于$H$的伴随式定义为$Hr$，$F_{q}^{n-k}$中的任意元素都称为伴随式。
-
-**性质**
-设$C$为$[n, k]_{q}$码，则$F_{q}^{n}=\sqcup_{s \in F_{q}^{n-k}}(s+C)$。
-
-#### 相关问题
-**问题1（带噪码字译码）**
-给定秩为$k$的矩阵$G \in F_{q}^{k ×n}$、整数$t \in[0, n]$、向量$y \in F_{q}^{n}$，其中$y=c+e$，$c=m G$（$m \in F_{q}^{k}$）且$wt_{H}(e) ≤t$，求错误向量$e$。
-
-**问题2（伴随式译码）**
-给定秩为$n-k$的矩阵$H \in F_{q}^{(n-k) ×n}$、整数$t \in[0, n]$、向量$s \in F_{q}^{n-k}$，其中$H e=s$且$wt_{H}(e) ≤t$，求错误向量$e$。
-
-**定理**
-问题1和问题2是等价的。
-
-谢谢 -->
+### 伴随式
+- **伴随式**：设 $H \in F_{q}^{(n-k) \times n}$，接收字 $r \in F_{q}^{n}$ 关于 $H$ 的伴随式定义为 $Hr\in F_{q}^{n-k}$
+    - $F_{q}^{n-k}$ 中的任意元素都称为伴随式。
+    - **性质**：设 $C$ 为 $[n, k]_{q}$ 码，则 $F_{q}^{n}=\sqcup_{s \in F_{q}^{n-k}}(s+C)$。
+- **相关问题**
+    - **带噪码字译码**：给定秩为 $k$ 的矩阵 $G \in F_{q}^{k\times n}$、整数 $t \in[0, n]$、向量 $y \in F_{q}^{n}$，其中 $y=c+e$，$c=G^{\top}m$，$m \in F_{q}^{k}$ 且 $\mathrm{wt}_{H}(e) \leq t$，求错误向量 $e$。
+    - **伴随式译码**：给定秩为 $n-k$ 的矩阵 $H \in F_{q}^{(n-k) \times n}$、整数 $t \in[0, n]$、向量 $s \in F_{q}^{n-k}$，其中 $H e=s$ 且 $\mathrm{wt}_{H}(e) \leq t$，求错误向量 $e$。
+- **定理**：上述两个问题等价。
