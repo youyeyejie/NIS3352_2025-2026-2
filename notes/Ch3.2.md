@@ -70,7 +70,7 @@
     - $C$ 的长度为 $n$
     - $C$ 的维数为 $k \leq n$，即 $C$ 可以由 $k$ 个线性无关的向量生成
     - $C$ 的码率为 $\frac{k}{n} \leq 1$，即存在冗余
-    - $C$ 中的元素称为码字，表示为列向量 $c=(c_{1},\cdots,c_{n})^{\top}$ 或列向量 $c^{\top}$。
+    - $C$ 中的元素称为码字，表示为列向量 $c=(c_{1},\cdots,c_{n})^{\top}$ 或行向量 $c^{\top}$。
 - **线性码的表示与生成矩阵**：设 $G \in F_{q}^{k \times n}$ 的行向量 $g_{1},\cdots,g_{k}$ 构成 $C^{\perp}$ 的一组基，则 $C$ 可表示为
     $$
     C=\left\{c \in F_{q}^{n}: c=G^{\top} m, m \in F_{q}^{k}\right\},\quad G=\begin{pmatrix} g_{1} \\ \vdots \\ g_{k} \end{pmatrix}_{k \times n}
@@ -119,11 +119,21 @@
         1. $d_{min}(C)\leq t \iff H$ 存在 $t$ 个线性相关的列
         2. $d_{min}(C)\geq t \iff H$ 的任意 $t-1$ 个列都线性无关
     - **推论（Singleton界）**：极小汉明距离满足 $d_{min}(C) \leq n-k+1$。
+    - **推论**：若 $H$ 是线性码 $C$ 的校验矩阵，设 $C$ 的极小汉明距离为 $d$，则 $H$ 的任意 $d-1$ 列线性无关，且存在 $d$ 个线性相关的列。
+
+#### 线性码的等价性
+- **约化**：通过初等行变换将两个矩阵转化为行简化阶梯形矩阵
+    - $G \to G'=\begin{pmatrix} I_{k} & P \end{pmatrix}$
+    - $H \to H'=\begin{pmatrix} -P^{\top} & I_{n-k} \end{pmatrix}$
+- **线性码的等价性**：设 $C_{1}, C_{2} \subseteq F_{q}^{n}$ 是两个线性码，若存在一个 $n \times n$ 的置换矩阵 $P$ 和一个 $n \times n$ 的可逆对角矩阵 $D$，使得 $C_{2}=\{P D c: c \in C_{1}\}$，则称 $C_{1}$ 与 $C_{2}$ 是等价的。
+    - 相当于对码字进行位置置换和分量缩放，保持码字之间的距离不变。
+    - **性质**：等价的线性码具有相同的参数 $[n, k, d]$，但不一定具有相同的生成矩阵或校验矩阵。
+- **定理**：设 $C$ 是 $[n, k]_{q}$ 码，则存在一个等价的 $[n, k]_{q}$ 码 $C'$，使得 $C'$ 的生成矩阵为系统矩阵，即 $G'=\begin{pmatrix} I_k & P \end{pmatrix}$。
 
 ### 纠错码
 #### 纠错码示例
-- **汉明码**：设 $r \geq 2$，汉明码 $C=[2^{r}-1,2^{r}-1-r]_{2}$ 由 $r \times(2^{r}-1)$ 的校验矩阵构造，其第 $i$ 列是 $1 \leq i \leq 2^{r}-1$ 的二进制表示。
-    - 取码长 $n=7$、码维数 $k=4$ 的汉明码（$r=3$），其生成矩阵为
+- **汉明码**：设 $r \geq 2$，汉明码 $C=[2^{r}-1,2^{r}-1-r]_{2}$ 由 $r \times(2^{r}-1)$ 的校验矩阵构造，其第 $i$ 列是 $1 \leq i \leq 2^{r}-1$ 的二进制表示，该码的维数为 $2^{r}-1-r$，极小汉明距离为 $r$。
+    - **示例**：取码长 $n=7$、码维数 $k=4$ 的汉明码（$r=3$），其生成矩阵为
         $$
         G=\begin{pmatrix}
         1 & 0 & 0 & 0 & 1 & 1 & 0 \\
@@ -150,19 +160,46 @@
     GRS(n, k)=\{(z_{1} f(\alpha_{1}), \cdots, z_{n} f(\alpha_{n})) \mid f \in F_{q}[x],\deg(f)<k\}
     $$
 
-    $GRS(n,k)$ 是$[n, k]_{q}$ 码。
-    - RS 码：特别地，RS 码是所有 $z_{1}=\cdots=z_{n}=1$ 的 GRS 码。
-    - 维数：映射 $f(x) \in F_{q}[x]_{\deg(f)<k} \to (f(\alpha_{1}), \cdots, f(\alpha_{n})) \in F_{q}^{n}$ 为单射
-    - 表示：可由生成矩阵表示
-    - 对偶码：$GRS^{\perp}(n, k)$ 仍是 GRS 码，其对应的 $z'=(z_{i}')$ 满足 $z_{i}'=\frac{1}{z_{i} \prod_{j ≠i}(\alpha_{j}-\alpha_{i})}$
-    - 高效编码：对任意消息 $m \in F_{q}^{k}$，按 $c=G^{\top}m$ 编码的复杂度为 $O(n^2)$；若对 $n$ 和 $F_{q}$ 加以限制，可通过 FFT 实现 $O(n \log n)$ 的快速编码。
+    - $GRS(n,k)$ 是 $[n, k]_{q}$ 码。
+        - 是线性码：
+            - $F_{q}[x]_{\deg(f)<k}$ 构成一个 $k$ 维的 $F_{q}$ 线性空间
+            - 映射 $f(x) \in F_{q}[x]_{\deg(f)<k} \mapsto (f(\alpha_{1}), \cdots, f(\alpha_{n})) \in F_{q}^{n}$ 为单射，则 $(f(\alpha_{1}), \cdots, f(\alpha_{n}))$ 也是一个 $k$ 维的 $F_{q}$ 线性空间
+            - 乘以 $z$ 后仍是一个 $k$ 维的 $F_{q}$ 线性空间
+        - 码长：$n$
+        - 码维数：$k$
+        - 极小汉明距离：$d = n-k+1$
+    - 生成矩阵：
+        $$
+        G=\begin{pmatrix}
+        z_{1} & z_{2} & \cdots & z_{n} \\
+        z_{1} \alpha_{1} & z_{2} \alpha_{2} & \cdots & z_{n} \alpha_{n} \\
+        \vdots & \vdots & \ddots & \vdots \\
+        z_{1} \alpha_{1}^{k-1} & z_{2} \alpha_{2}^{k-1} & \cdots & z_{n} \alpha_{n}^{k-1}
+        \end{pmatrix}_{k\times n}
+        $$
+    - 对偶码：$GRS^{\perp}(n, k)$ 仍是 GRS 码，其对应的 $z_{i}'=\frac{1}{z_{i} \prod_{j ≠i}(\alpha_{j}-\alpha_{i})}$（由拉格朗日插值可得），校验矩阵为
+        $$
+        H=\begin{pmatrix}
+        z_{1}' & z_{2}' & \cdots & z_{n}' \\
+        z_{1}' \alpha_{1} & z_{2}' \alpha_{2} & \cdots & z_{n}' \alpha_{n} \\
+        \vdots & \vdots & \ddots & \vdots \\
+        z_{1}' \alpha_{1}^{n-k-1} & z_{2}' \alpha_{2}^{n-k-1} & \cdots & z_{n}' \alpha_{n}^{n-k-1}
+        \end{pmatrix}_{(n-k)\times n}
+        $$
+    - 高效编码：对任意消息 $m \in F_{q}^{k}$，按 $c=G^{\top}m$ 编码的复杂度为 $O(kn) \to O(k(n-k))$；若对 $n$ 和 $F_{q}$ 加以限制，可通过 FFT 实现 $O(n \log n)$ 的快速编码。
+- **Reed-Solomon 码**：特别地，RS 码是所有 $z_{1}=\cdots=z_{n}=1$ 的 GRS 码。
 
 #### 纠错码译码
-- **译码问题**：设发送码字 $c \in F_{q}^{n}$ 在信道中被错误向量 $e \in F_{q}^{n}$ 干扰，得到接收字 $r=c+e$，译码问题是在 $\mathrm{wt}_{H}(e)$ 较小的假设下，从 $r$ 恢复原始码字 $c$。
-- **唯一译码定理**：若 $\mathrm{wt}(e) \leq\left\lfloor\frac{d-1}{2}\right\rfloor$，则总能从 $r=c+e$ 中唯一重构（译码）出 $c \in C$。
+- **译码问题**：设发送码字 $c \in F_{q}^{n}$ 在信道中被错误向量 $e \in F_{q}^{n}$ 干扰，得到接收字 $r=c+e$，译码问题是在 $\mathrm{wt}_{H}(e) \le t$ 较小的假设下，从 $r$ 恢复原始码字 $c$。
+- **译码条件**：设 $C$ 的极小汉明距离为 $d$，则要求 $t<d$，否则 $e+C \cap C \neq \emptyset$，无法唯一确定 $c$。
+- **译码模式**：
+    - 唯一译码：输出 $B_H(r, t) \cap C=\{c\}$ 中唯一的码字 $c$，其中汉明球 $B_H(r, t)=\{x \in F_{q}^{n} \mid \mathrm{wt}(x-r) \le t\}$
+    - 最近邻译码：输出距离 $r$ 最近的码字
+    - 列表译码：输出所有满足给定汉明距离约束的码字
+- **唯一译码定理**：若 $\mathrm{wt}(e) \leq\left\lfloor\frac{d-1}{2}\right\rfloor$，则总能从 $r=c+e$ 中唯一译码出 $c \in C$。
 - **Reed-Solomon 码的唯一译码算法**：BERLEKAMP-WELCH 算法
     - 该算法可在译码半径 $\frac{d-1}{2}$ 内对 RS 码进行唯一译码。
-    - **输入**：$r=(r_{1}, r_{2}, \cdots, r_{n})^{\top}=c+e \in \mathbb{F}_{q}^{n}$，其中 $c \in RS[n, k]$，$\mathrm{wt}(e)<\frac{d-1}{2}$
+    - **输入**：$r=(r_{1}, r_{2}, \cdots, r_{n})^{\top}=c+e \in F_{q}^{n}$，其中 $c \in RS[n, k]$，$\mathrm{wt}(e)<\frac{d-1}{2}$
     - **输出**：$f(x) \in \mathbb{F}_{q}[x]_{<k}$，满足 $(f(\alpha_{1}), \cdots, f(\alpha_{n}))=c$
     - **算法步骤**：
         1. 设错误定位多项式 $e(x)=\prod_{e_{i} ≠0}(x-\alpha_{i})$，则对所有 $i \in[1, n]$，有 $r_{i}e(\alpha _{i})=e(\alpha _{i})f(\alpha _{i})$
