@@ -273,7 +273,7 @@
     - **译码复杂度**
         - 空间复杂度：$O(q^{n-k})$
         - 计算复杂度：$O(n(n-k))$
-- **Reed-Solomon 码的唯一译码算法**：BERLEKAMP-WEL\mathcal{C}H 算法可在译码半径 $\frac{d-1}{2}$ 内对 RS 码进行唯一译码。
+- **Reed-Solomon 码的唯一译码算法**：BERLEKAMP-WELCH 算法可在译码半径 $\frac{d-1}{2}$ 内对 RS 码进行唯一译码。
     - **输入**：$r=(r_{1}, r_{2}, \cdots, r_{n})^{\top}=c+e \in F_{q}^{n}$，其中 $c \in \mathcal{C}_{RS}(n, k)$，$\mathrm{wt}(e) \leq t = \lfloor\frac{d-1}{2}\rfloor$
     - **输出**：$f(x) \in \mathbb{F}_{q}[x]_{<k}$，满足 $(f(\alpha_{1}), \cdots, f(\alpha_{n}))=c$
     - **算法步骤**：
