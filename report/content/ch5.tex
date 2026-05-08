@@ -1,0 +1,44 @@
+\chapter{Applications and Open Problems}
+\begin{center}
+\large \textbf{KEM in Protocol Deployment: HPKE and Hybrid TLS 1.3}
+\end{center}
+\vspace{1em}
+
+The previous chapters developed KEM from its formal syntax, generic transformations, and concrete ML-KEM implementation. This chapter considers its role in deployed protocols. A KEM establishes a shared secret; the protocol around it must still provide context binding, authentication, downgrade resistance, traffic encryption, and careful implementation.
+
+\section{HPKE: A Clean Standardized KEM Application}
+
+Hybrid Public Key Encryption (HPKE), standardized as RFC 9180, is one of the clearest applications of the KEM abstraction~\cite{rfc9180}. Its architecture is modular:
+\begin{itemize}
+    \item \textbf{KEM:} Establish a shared secret between sender and receiver.
+    \item \textbf{KDF:} Bind the shared secret to protocol context and derive
+    independent keys.
+    \item \textbf{AEAD:} Encrypt and authenticate the actual application
+    payload.
+\end{itemize}
+
+HPKE supports four modes: \textbf{base}, \textbf{PSK}, \textbf{auth}, and \textbf{authPSK}. These modes show what KEM deliberately does \textit{not} provide. A KEM gives secrecy for the encapsulated shared secret; sender authentication, PSK binding, and application context binding are added by the surrounding HPKE mode and key schedule.
+
+The security of HPKE comes from composition. An IND-CCA secure KEM protects the encapsulated secret; the KDF provides domain separation and context binding; the AEAD provides payload confidentiality and ciphertext integrity. Removing any layer changes the protocol's security meaning.
+
+HPKE also illustrates a subtle point about forward secrecy. Erasing the sender's ephemeral randomness protects against later sender-side compromise, but compromise of the receiver's long-term decapsulation key can still expose past recorded encapsulations. HPKE is therefore not automatically equivalent to an authenticated ephemeral Diffie--Hellman handshake.
+
+\section{Hybrid Post-Quantum Key Exchange in TLS 1.3}
+
+TLS 1.3 separates key exchange, authentication, transcript hashing, key derivation, and record protection. It uses ephemeral DH/ECDHE shares for forward secrecy~\cite{rfc8446}. During post-quantum migration, replacing ECDHE outright with a KEM would abandon the classical assumption before the post-quantum ecosystem is fully mature.
+
+The common migration strategy is hybrid key exchange: run a classical ephemeral exchange and a post-quantum KEM in the same handshake, then combine both outputs before entering the TLS key schedule. The IETF hybrid design draft describes this as a concatenation-based construction negotiated as a single TLS key exchange method~\cite{ietf-tls-hybrid-design-16}. The ECDHE-MLKEM draft gives concrete combinations such as \texttt{X25519MLKEM768}, \texttt{SecP256r1MLKEM768}, and \texttt{SecP384r1MLKEM1024}~\cite{ietf-tls-ecdhe-mlkem-04}.
+
+At a high level, the client sends a classical ECDHE key share and an ML-KEM encapsulation key. The server returns its ECDHE share and an ML-KEM ciphertext. The combined secret enters the TLS 1.3 key schedule. The goal is robustness: the handshake should retain a margin if either the classical or post-quantum assumption remains sound.
+
+The transcript hash is central. TLS 1.3 authenticates values derived from the transcript, including algorithm negotiation, key-share messages, certificates, and other handshake data~\cite{rfc8446}. In a hybrid handshake, this binding must cover the selected hybrid group and both key-exchange components; otherwise, an attacker may try to remove the post-quantum component or force a weaker configuration.
+
+Hybrid deployment also creates engineering costs. ML-KEM public keys and ciphertexts are much larger than X25519 or P-256 key shares, so \texttt{ClientHello} and \texttt{ServerHello} grow. Larger first flights can trigger fragmentation, middlebox failures, and latency. Implementations must also validate encoded public keys and ciphertexts without side-channel leakage.
+
+Thus, hybrid TLS shows that post-quantum KEM deployment is not a simple substitution of ML-KEM for ECDH. It changes negotiation, wire format, transcript binding, implementation paths, and the security proof surface.
+
+\section{Open Problems}
+
+Current approaches still have several limitations. TLS 1.3 analysis already shows that real handshake security depends on authentication levels, transcript binding, key schedule separation, replay behavior, and forward secrecy, not only on one key-exchange primitive~\cite{dowling2021cryptographic}. Adding a post-quantum KEM enlarges this proof surface. Hybrid constructions also need precise arguments for the intended ``secure if one component survives'' property~\cite{dowling2020many}. At the same time, experiments on TLS and SSH show that post-quantum integration affects latency, packet sizing, TCP behavior, and server throughput~\cite{sikeridis2020assessing}.
+
+The resulting research directions are closely connected. Protocol analysis needs tighter composable models for hybrid KEM use inside full handshakes, including the combiner, negotiation transcript, downgrade behavior, and decapsulation failure handling. Systems work needs lower-cost post-quantum handshakes through smaller wire formats, better batching, and cleaner TLS-library integration; existing implementation work shows that software-layer choices matter substantially~\cite{bernstein2022opensslntru}. Finally, malformed KEM inputs, fallback paths, and failure handling must remain compatible with constant-time handling. The post-quantum transition is therefore not only algorithm standardization, but also protocol design and systems security.

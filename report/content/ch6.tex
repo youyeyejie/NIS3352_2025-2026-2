@@ -1,0 +1,106 @@
+\chapter{Reflections and Insights}
+
+KEM is best understood as a disciplined interface for key establishment. It
+does not solve the whole secure-channel problem, but it gives protocols a clean
+way to obtain a high-entropy shared secret and then delegate the remaining work
+to KDF, AEAD, and authentication layers.
+
+\section{Strengths of the KEM Abstraction}
+
+The main advantage of KEM is modularity. The public-key algorithm is used only
+to establish a short shared secret; bulk data protection is left to symmetric
+cryptography. This matches the KEM/DEM view of hybrid encryption, where an
+IND-CCA secure KEM can be composed with a secure DEM to obtain a secure hybrid
+scheme~\cite{shoup2001proposal}. It also matches deployed designs such as HPKE,
+where KEM, KDF, and AEAD have clearly separated roles~\cite{rfc9180}.
+
+KEM is also a natural fit for post-quantum cryptography. Lattice-based schemes
+such as ML-KEM are built from noisy algebraic primitives, and it is simpler to
+derive a random shared key than to provide a general arbitrary-message PKE
+interface. The Fujisaki-Okamoto transformation explains how a CPA-secure core
+can be lifted to a CCA-secure KEM~\cite{fujisaki1999secure,hofheinz2017modular};
+ML-KEM standardizes this style of construction for module lattices~\cite{bos2018crystals,nist2024fips203}.
+
+Finally, the interface is implementation-friendly. The KEM operation surface is
+small, and in ML-KEM the expensive operations are regular: polynomial
+arithmetic, sampling, and SHA3/SHAKE. This makes optimized software
+and future hardware acceleration plausible.
+
+\section{Limitations}
+
+KEM does not remove the cost of the underlying assumption. ML-KEM public keys
+and ciphertexts are much larger than classical ECDH key shares, which affects
+packet size, fragmentation, latency, and compatibility. Measurements on
+post-quantum TLS and SSH show that deployment cost is not only CPU time, but
+also network behavior and server throughput~\cite{sikeridis2020assessing}.
+
+The engineering ecosystem is also less mature than DH/ECDH. Classical key
+exchange has decades of implementation and protocol experience, while
+post-quantum KEM deployment is still converging around validation, constant-time
+decapsulation, hybrid negotiation, and library APIs. A KEM alone is not an
+authenticated key exchange; authentication, downgrade protection, replay
+behavior, and transcript binding must come from the surrounding protocol, as in
+TLS 1.3~\cite{rfc8446,dowling2021cryptographic}.
+
+Security also depends on assumptions and implementation discipline. ML-KEM
+relies on module-lattice hardness, and FO-style decapsulation must avoid
+leaking validity information through timing or failure behavior. Implicit
+rejection helps, but it does not replace careful constant-time implementation.
+
+\section{Research Directions}
+
+The first practical direction is dedicated acceleration. ML-KEM would benefit
+from instruction-set or hardware support for NTT, modular arithmetic over
+$q=3329$, SHA3/SHAKE, and sampling. As with AES-NI, the value is both speed and
+a smaller side-channel surface.
+
+The second direction is better transformations. FO-like transforms remain the
+bridge from weak public-key primitives to CCA-secure KEMs. More efficient or
+tighter variants could reduce parameter sizes, improve security margins, or
+handle imperfect correctness more cleanly.
+
+The third direction is proof with tighter QROM security. Existing FO-style analyses in the
+Quantum Random Oracle Model often lose tightness~\cite{targhi2016post,hofheinz2017modular}.
+Sharper reductions would make concrete post-quantum parameter choices easier to
+justify.
+
+The final direction is protocol-realistic hybrid KEM analysis. Real deployments
+combine classical ECDHE and post-quantum KEMs inside full handshakes, with
+algorithm negotiation, transcript hashes, error handling, and downgrade
+resistance. Security models should capture the intended hybrid guarantee: the
+exchange should remain secure if at least one component remains secure~\cite{dowling2020many}.
+
+\section{Personal Reflections}
+
+Having worked through the technical development from Shoup's KEM/DEM systematization, the Cramer-Shoup KEM, the Fujisaki-Okamoto transformation, and finally ML-KEM, I would like to reflect on several aspects that I found particularly insightful.
+
+\subsection{Why IND-CCA Security Is Non-Trivial}
+
+A classic example that illustrates the difficulty of IND-CCA security is the El Gamal encryption scheme. El Gamal is IND-CPA secure under the DDH assumption, but it is \textit{not} IND-CCA secure. Given a challenge ciphertext $(c_1, c_2) = (g^y, m \cdot h^y)$, an adversary can simply multiply $c_2$ by a known factor $\alpha$ and submit the modified ciphertext $(c_1, \alpha \cdot c_2)$ to the decryption oracle. The oracle returns $\alpha \cdot m$, from which the adversary recovers $m$ directly. The attack works because El Gamal's ciphertexts are \textit{malleable}.
+
+The Cramer-Shoup KEM (CS3) closes this gap by introducing \textit{redundancy and verification}. The decapsulation algorithm verifies that the ciphertext components satisfy a carefully designed algebraic relation involving $v = H(a, \hat{a})$. Any tampering that changes $(a, \hat{a})$ will change $v$ and cause the verification to fail. The adversary cannot adjust $d$ to satisfy the new relation without knowing the secret exponents.
+
+The Fujisaki-Okamoto transformation achieves a similar effect but in a \textit{generic} way. Instead of algebraic verification, FO uses \textit{re-encryption}: the decapsulator recovers $m'$, recomputes the ciphertext as $\text{Encrypt}(pk, m'; G(m'))$, and only accepts if it matches the received ciphertext. Both techniques are brilliant but illustrate different trade-offs: CS3 uses structured algebra under DDH, while FO uses generic re-encryption in the random oracle model.
+
+\subsection{The Power of Hybrid Games}
+
+Among all proof techniques encountered, the hybrid game sequence used to prove IND-CCA security of CS3 left the deepest impression on me. The proof proceeds through \textbf{seven games} ($\mathbf{G}_0$ to $\mathbf{G}_7$), each modifying one small aspect of the original security experiment.
+
+What makes this sequence so impressive is how each step isolates a \textit{single} cryptographic assumption or a \textit{single} statistical artifact. Each transition is either:
+\begin{itemize}
+    \item Conceptually identical (no change in distribution),
+    \item Statistically close (bounded by a small term like $1/q$ or $q_D/q$), or
+    \item Computationally close (bounded by an assumption like DDH or TCR).
+\end{itemize}
+
+When all transitions are combined, the total advantage is a \textit{sum} of small terms. This taught me that even a complex security proof can be made transparent if the proof designer carefully chooses the right intermediate game definitions. The art of security proofs lies largely in \textit{finding the right sequence of hybrid games}.
+
+\subsection{Modularization as a Way of Thinking}
+
+One of the most valuable intellectual takeaways from this project is the power of modular abstraction.
+
+First, \textbf{Shoup's KEM/DEM systematization} separates the concerns of asymmetric key establishment and symmetric data protection. If a KEM is IND-CCA secure and a DEM is IND-CCA secure, then their composition is automatically IND-CCA secure. This modularity mirrors how secure systems should be built.
+
+Second, \textbf{the HHK modular analysis of FO} decomposes a complex transformation into simpler pieces $\text{T}$ and $\text{U}$. $\text{T}$ turns an OW-CPA PKE into a deterministic OW-PCA PKE; $\text{U}$ turns an OW-PCVA PKE into an IND-CCA KEM. This decomposition clarified for me why FO can start from a very weak assumption (OW-CPA) and still achieve IND-CCA. Before reading HHK, I viewed FO as a single opaque recipe. Afterward, I saw it as a \textit{framework}.
+
+These two modularization efforts fundamentally changed how I think about cryptographic design: good cryptography is not just about hard problems, but about structuring protocols so that their security becomes analyzable and composable.

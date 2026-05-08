@@ -1,0 +1,542 @@
+\chapter{Technical Development}
+\begin{center}
+\large \textbf{Key Milestones in KEM Design and Post-Quantum Standardization}
+\end{center}
+\vspace{1em}
+
+This section will present the technical development, starting with Shoup's KEM/DEM composition theorem, then the Cramer-Shoup scheme, the Fujisaki-Okamoto transformation, and finally ML-KEM as a post-quantum instantiation.
+
+\section{Milestone 1: Shoup's KEM/DEM Systematization}
+
+Shoup's seminal work~\cite{shoup2001proposal} systematized the division between key encapsulation and data encapsulation, formally defining the KEM/DEM paradigm. The key insight is that cryptographers can independently study KEM and DEM; their composition yields a hybrid encryption system with composable security properties. Specifically, if a KEM satisfies IND-CCA security and a DEM satisfies IND-CCA security (in the sense of symmetric encryption with ciphertext integrity), then the resulting hybrid scheme achieves IND-CCA security. This modularity mirrors engineering best practices and has influenced standardization efforts including ISO/IEC 18033-2.
+
+\noindent\textbf{Definition 3.1 KEM/DEM Paradigm.} Given a KEM and a compatible DEM (i.e., with matching key lengths), one can construct a hybrid public-key encryption scheme $\text{PKE} = \text{Hybrid}[\text{KEM}, \text{DEM}]$ as follows:
+\begin{itemize}
+    \item \textbf{Key Generation:} Same as $\text{KEM.KeyGen}(1^\lambda) \to (pk, sk)$.
+    \item \textbf{Encryption:} To encrypt a message $m$ under public key $pk$:
+    \begin{enumerate}
+        \item $(K, \psi) \gets \text{KEM.Encaps}(pk)$
+        \item $\chi \gets \text{DEM.Encrypt}(K, m)$
+        \item Output ciphertext $C = (\psi, \chi)$
+    \end{enumerate}
+    \item \textbf{Decryption:} To decrypt a ciphertext $C = (\psi, \chi)$ under secret key $sk$:
+    \begin{enumerate}
+        \item $K \gets \text{KEM.Decaps}(sk, \psi)$; if $K = \bot$, output $\bot$
+        \item $m \gets \text{DEM.Decrypt}(K, \chi)$; output $m$ (or $\bot$ if decryption fails)
+    \end{enumerate}
+\end{itemize}
+
+\noindent\textbf{Theorem 3.2 KEM/DEM Composition.} If $\text{KEM}$ is $\text{IND-CCA}$ secure and $\text{DEM}$ is $\text{IND-CCA}$ secure, then the hybrid scheme $\text{PKE}$ is $\text{IND-CCA}$ secure.
+
+\noindent\textit{Proof.} Let $A$ be an adversary against the hybrid scheme. Define game $\mathbf{G}_0$ as the real IND-CCA game. We construct a sequence of games:
+\begin{itemize}
+    \item \textbf{Game $\mathbf{G}_1$:} Replace the real KEM key $K^*$ in the challenge ciphertext with a uniformly random key $K'$ of the same length. The difference between $\mathbf{G}_0$ and $\mathbf{G}_1$ is exactly a KEM IND-CCA game, bounded by $\text{Adv}_{\text{KEM}}^{\text{ind-cca}}(B_1)$ for a suitable adversary $B_1$ against KEM.
+    \item \textbf{Game $\mathbf{G}_2$:} Replace the DEM encryption of $m_b$ under $K'$ with an encryption of a fixed dummy message (e.g., all zeros). The difference between $\mathbf{G}_1$ and $\mathbf{G}_2$ is exactly a DEM IND-CCA game, bounded by $\text{Adv}_{\text{DEM}}^{\text{ind-cca}}(B_2)$.
+    \item In $\mathbf{G}_2$, the challenge ciphertext is independent of $b$, so $A$'s advantage is $0$.
+\end{itemize}
+
+Next we explicitly construct the adversaries $B_1$ and $B_2$.
+
+$B_1$ is a reduction to the KEM IND-CCA game.
+\begin{itemize}
+    \item \textbf{Input:} $B_1$ receives a KEM public key $\text{pk}_{\text{kem}}$ and access to a KEM decapsulation oracle $\text{Decaps}_{\text{kem}}(\cdot)$.
+    \item \textbf{Setup:} $B_1$ generates the DEM parameters locally and defines the hybrid public key as $pk = (\text{pk}_{\text{kem}}, \text{params}_{\text{dem}})$.
+    \item \textbf{Decryption queries:} On each query $(\psi, \chi)$ from $A$, $B_1$ forwards $\psi$ to its KEM decapsulation oracle. If the oracle returns $K = \bot$, $B_1$ returns $\bot$ to $A$; otherwise it returns $\text{DEM.Decrypt}(K, \chi)$.
+    \item \textbf{Challenge:} When $A$ submits messages $m_0, m_1$, $B_1$ forwards the request to the KEM challenger and receives $(\psi^*, K_b)$, where $b \in \{0,1\}$. It chooses a random bit $\beta$, computes $\chi^* = \text{DEM.Encrypt}(K_b, m_\beta)$, and returns $(\psi^*, \chi^*)$ to $A$.
+    \item \textbf{Restrictions:} If $A$ later queries a ciphertext whose first component equals $\psi^*$, $B_1$ must refuse the query because the KEM game forbids asking for decapsulation of the challenge ciphertext.
+    \item \textbf{Output:} When $A$ outputs a guess $\beta'$, $B_1$ outputs $1$ if $\beta' = \beta$, and $0$ otherwise.
+\end{itemize}
+
+The simulation is perfect when $b = 0$ because $K_b$ is the real KEM key. When $b = 1$, the challenge key $K_b$ is uniform and independent of the challenge messages, so $B_1$ simulates the hybrid game where the DEM key is random. Thus
+$$
+\left|\Pr[\beta' = \beta] - \frac{1}{2}\right| \le \text{Adv}_{\text{KEM}}^{\text{ind-cca}}(B_1).
+$$
+
+$B_2$ is a reduction to the DEM IND-CCA game.
+\begin{itemize}
+    \item \textbf{Input:} $B_2$ receives a DEM challenge oracle that holds a hidden key $K^*$ and answers decryption queries on ciphertexts $\chi \neq \chi^*$.
+    \item \textbf{Setup:} $B_2$ generates a fresh KEM key pair $(\text{pk}_{\text{kem}}, \text{sk}_{\text{kem}})$ locally, and gives $A$ the hybrid public key $pk = (\text{pk}_{\text{kem}}, \text{params}_{\text{dem}})$.
+    \item \textbf{Decryption queries before challenge:} On each query $(\psi, \chi)$, $B_2$ computes $K = \text{KEM.Decaps}(\text{sk}_{\text{kem}}, \psi)$. If $K = \bot$, it returns $\bot$. Otherwise it forwards $\chi$ to its DEM decryption oracle and returns the result.
+    \item \textbf{Challenge:} When $A$ submits $m_0, m_1$, $B_2$ runs $(\psi^*, K^*) \gets \text{KEM.Encaps}(\text{pk}_{\text{kem}})$ locally. It forwards $(m_0, m_1)$ to the DEM challenger, receives the challenge ciphertext $\chi^* = \text{DEM.Encrypt}(K^*, m_b)$ for random $b$, and returns $(\psi^*, \chi^*)$ to $A$.
+    \item \textbf{Decryption queries after challenge:} If $A$ queries $(\psi, \chi)$ with $\psi = \psi^*$ and $\chi \neq \chi^*$, $B_2$ forwards $\chi$ to the DEM decryption oracle because it knows the hidden key is $K^*$. If $\psi \neq \psi^*$, it decapsulates with $\text{sk}_{\text{kem}}$ and forwards the resulting key to the DEM oracle as before.
+    \item \textbf{Output:} When $A$ outputs a guess $\beta'$, $B_2$ forwards $\beta'$ as its output.
+\end{itemize}
+
+This simulation is also perfect: the hybrid ciphertext uses a KEM component generated exactly as in the real scheme, and the DEM component is provided by the DEM challenger under key $K^*$. Therefore the only difference between the real and ideal worlds is the DEM challenge encryption itself, giving
+$$
+\left|\Pr[\beta' = b] - \frac{1}{2}\right| \le \text{Adv}_{\text{DEM}}^{\text{ind-cca}}(B_2).
+$$
+
+Combining the two reductions yields
+$$
+\text{Adv}_{\text{PKE}}(A) \le \text{Adv}_{\text{KEM}}^{\text{ind-cca}}(B_1) + \text{Adv}_{\text{DEM}}^{\text{ind-cca}}(B_2),
+$$
+so the hybrid scheme is IND-CCA secure when both components are.
+
+\section{Milestone 2: The Cramer-Shoup KEM (CS3)}
+
+The Cramer-Shoup encryption scheme~\cite{cramer2003design} was the first practical public-key encryption scheme provably secure against adaptive chosen ciphertext attacks (IND-CCA) without random oracles, under the Decisional Diffie-Hellman (DDH) assumption. 
+While the original CS paper presented a full PKE, it also introduced a KEM called \textbf{CS3}~\cite{cramer2003design} (and its most efficient variant \textbf{CS3b}), which we describe here.
+
+\subsection{Definition of Basic Assumptions}
+
+\noindent\textbf{Definition 3.3 Decisional Diffie-Hellman (DDH) Assumption.} Let $G \gets \mathcal{G}(1^\lambda)$ be a cyclic group of prime order $q$ with generator $g$. For any probabilistic polynomial-time adversary $A$, define
+$$
+\text{Adv}_{\mathcal{G}}^{\text{DDH}}(A) = \left| \Pr[A(g, g^x, g^y, g^{xy}) = 1] - \Pr[A(g, g^x, g^y, g^z) = 1] \right|,
+$$
+where $x, y, z \gets \mathbb{Z}_q$ are uniformly random. The DDH assumption states that $\text{Adv}_{\mathcal{G}}^{\text{DDH}}(A) \le \text{negl}(\lambda)$ for all PPT adversaries $A$.
+
+\noindent\textbf{Definition 3.4 Target Collision Resistant (TCR) Assumption.} Let $\mathrm{HF}$ be a keyed hash family with public key space $\mathcal{K}$ and range $\mathbb{Z}_q$. For any PPT adversary $A$, define
+$$
+\text{Adv}_{\mathrm{HF}}^{\text{TCR}}(A) = \Pr\left[
+\begin{matrix}
+hk \gets \mathcal{K} \\
+y \gets \mathbb{Z}_q \\
+(x,x') \gets A(hk, y)
+\end{matrix} : \ x \neq x' \ \land\ \mathrm{HF}_{hk}(x) = \mathrm{HF}_{hk}(x') = y
+\right].
+$$
+We say $\mathrm{HF}$ is target collision resistant if $\text{Adv}_{\mathrm{HF}}^{\text{TCR}}(A) \le \text{negl}(\lambda)$ for all PPT adversaries $A$.
+
+\noindent\textbf{Definition 3.5 Key Derivation Function (KDF) Security.} Let $\mathrm{KDF}$ be a keyed key-derivation function with key space $\mathcal{K}_{\text{dk}}$ and output length $\kappa(\lambda)$. For any PPT adversary $A$, define
+$$
+\text{Adv}_{\mathrm{KDF}}^{\text{dist}}(A) = \left|
+\Pr\left[\tau=1:\begin{matrix}\text{dk} \gets \mathcal{K}_{\text{dk}} \\ a,b \gets G \\ K \gets \mathrm{KDF}_{\text{dk}}(a,b) \\ \tau \gets A(\text{dk}, a, K)\end{matrix}\right] -
+\Pr\left[\tau=1:\begin{matrix}\text{dk} \gets \mathcal{K}_{\text{dk}} \\ a \gets G \\ K \gets \{0,1\}^{\kappa(\lambda)} \\ \tau \gets A(\text{dk}, a, K)\end{matrix}
+\right]\right|.
+$$
+We say $\mathrm{KDF}$ is secure if $\text{Adv}_{\mathrm{KDF}}^{\text{dist}}(A) \le \text{negl}(\lambda)$ for all PPT adversaries $A$.
+
+\subsection{Syntax of CS3 KEM}
+
+\noindent\textbf{Definition 3.6 Cramer-Shoup KEM.} Let $G$ be a cyclic group of prime order $q$ with generator $g$. Let $H: G^2 \to \mathbb{Z}_q$ be a target collision resistant hash function. Let $\text{KDF}: G^2 \to \{0,1\}^{\kappa(\lambda)}$ be a key derivation function.
+
+\begin{itemize}
+    \item \textbf{Key Generation:} Choose random $x_1, x_2, y_1, y_2, z_1, z_2, w \gets \mathbb{Z}_q$ with $w \neq 0$. Compute:
+    $$
+    \hat{g} = g^{w}, \quad e = g^{x_1} \hat{g}^{x_2}, \quad f = g^{y_1} \hat{g}^{y_2}, \quad h = g^{z_1} \hat{g}^{z_2}.
+    $$
+    The public key is $pk = (\hat{g}, e, f, h)$, and the secret key is $sk = (x_1, x_2, y_1, y_2, z_1, z_2)$.
+    
+    \item \textbf{Encapsulation:} On input $pk$, choose a random $u \gets \mathbb{Z}_q$. Compute:
+    $$
+    a = g^{u}, \quad \hat{a} = \hat{g}^{u}, \quad b = h^{u}, \quad v = H(a, \hat{a}), \quad d = e^{u} f^{u v}.
+    $$
+    Output the ciphertext $\psi = (a, \hat{a}, d)$ and the key $K = \text{KDF}(a, b)$.
+    
+    \item \textbf{Decapsulation:} On input $sk$ and ciphertext $\psi = (a, \hat{a}, d)$:
+    \begin{enumerate}
+        \item Verify that $a, \hat{a}, d \in G$. If not, reject.
+        \item Compute $v = H(a, \hat{a})$.
+        \item Check whether $d = a^{x_1 + y_1 v} \cdot \hat{a}^{x_2 + y_2 v}$. If not, reject.
+        \item Compute $b = a^{z_1} \hat{a}^{z_2}$.
+        \item Output $K = \text{KDF}(a, b)$.
+    \end{enumerate}
+\end{itemize}
+
+\subsection{Correctness of CS3 KEM}
+
+\noindent\textbf{Theorem 3.7 Correctness of CS3.} For any honestly generated key pair $(pk, sk)$ and any encapsulation randomness $u$:
+$$
+\text{Decaps}(sk, \text{Encaps}(pk)) = \text{KDF}(a, b),
+$$
+where $a = g^{u}$ and $b = h^{u}$.
+
+\noindent\textit{Proof.} From the encapsulation, we have $a = g^{u}$, $\hat{a} = \hat{g}^{u} = g^{wu}$. 
+The decapsulation step first recomputes $b = a^{z_1} \hat{a}^{z_2} = g^{u z_1} \cdot g^{wu z_2} = g^{u(z_1 + w z_2)} = h^{u}$, since $h = g^{z_1} \hat{g}^{z_2} = g^{z_1 + w z_2}$.
+
+For the verification step, note that $e = g^{x_1 + w x_2}$ and $f = g^{y_1 + w y_2}$. Then:
+$$
+e^{u} f^{u v} = g^{u(x_1 + w x_2)} \cdot g^{u v (y_1 + w y_2)} = g^{u(x_1 + y_1 v) + w u (x_2 + y_2 v)}.
+$$
+On the other hand, $a^{x_1 + y_1 v} \cdot \hat{a}^{x_2 + y_2 v} = g^{u(x_1 + y_1 v)} \cdot g^{w u (x_2 + y_2 v)}$, which is identical. Hence the verification passes, and decapsulation returns the same $K$ as encapsulation.
+
+\subsection{IND-CCA Security of CS3 KEM}
+
+\noindent\textbf{Theorem 3.8 IND-CCA Security of CS3.} If the DDH assumption holds in $G$, $H$ is a TCR hash function, and the KDF is secure as defined in Section 2.5, then the CS3 KEM is IND-CCA secure in the standard model.
+
+\noindent\textit{Proof.} Let $A$ be an adversary making at most $q_D$ decapsulation queries. We construct a sequence of games:
+
+\vspace{0.5em}
+\noindent\textbf{Game $\mathbf{G}_0$ (The standard game).} 
+The adversary receives $pk$, makes decapsulation queries, then receives a challenge $(\psi^*, K_\beta)$ where $\beta \in \{0,1\}$ is random, and outputs a guess $\beta'$. Let $T_i$ be the event that $\beta'=\beta$ in $\mathbf{G}_i$.
+
+\vspace{0.5em}
+\noindent\textbf{Game $\mathbf{G}_1$ (Remove dependence on $e, f, h$).} 
+Modify the encapsulation oracle to compute $b \gets a^{z_1} \hat{a}^{z_2}$ and $d \gets a^{x_1 + y_1 v} \hat{a}^{x_2 + y_2 v}$, directly using the secret key instead of the public parameters $e, f, h$. This change is purely conceptual; the distribution of the challenge ciphertext is identical. So $\Pr[T_1] = \Pr[T_0]$. 
+
+\vspace{0.5em}
+\noindent\textbf{Game $\mathbf{G}_2$ (Replace the DH triple).} 
+Modify the encapsulation oracle to sample $\hat{u} \gets \mathbb{Z}_q$ independently and set $\hat{a} = \hat{g}^{\hat{u}}$. 
+$(\hat{g} = g^w, a = g^u, \hat{a} = \hat{g}^{u} = g^{wu})$ in $\mathbf{G}_1$ and $(\hat{g} = g^w, a = g^u, \hat{a} = g^{w\hat{u}})$ in $\mathbf{G}_2$ form a DDH instance except $w \neq 0$, so by the DDH assumption, there is a reduction $A_1$ such that:
+$$
+|\Pr[T_2] - \Pr[T_1]| \le \text{Adv}_{\mathcal{G}}^{\text{DDH}}(A_1) + \frac{2}{q}.
+$$
+
+\vspace{0.5em}
+\noindent\textbf{Game $\mathbf{G}_3$ (Hash-collision rejection).} 
+Add a rule that if the adversary submits $(a, \hat{a}, d)$ with $(a, \hat{a}) \neq (a^*, \hat{a}^*)$ but $H(a, \hat{a}) = H(a^*, \hat{a}^*)$, the decapsulation oracle rejects immediately. 
+Let $R_3$ be the event that a query is rejected in $\mathbf{G}_3$ but would have been accepted in $\mathbf{G}_2$. By the TCR assumption, there is a reduction $A_2$ such that:
+$$
+\Pr[R_3] \le \text{Adv}_{\mathrm{HF}}^{\text{TCR}}(A_2).
+$$
+Games $\mathbf{G}_2$ and $\mathbf{G}_3$ are identical until $R_3$, so:
+$$
+|\Pr[T_3] - \Pr[T_2]| \le \Pr[R_3].
+$$
+
+\vspace{0.5em}
+\noindent\textbf{Game $\mathbf{G}_4$ (Exclude $\hat{u} = u$).} 
+We again modify the encapsulation oracle to sample $\hat{u} \gets \mathbb{Z}_q \setminus \{u\}$ independently and set $\hat{a} = \hat{g}^{\hat{u}}$. It is clear that:
+$$
+|\Pr[T_4] - \Pr[T_3]| \le \frac{1}{q}.
+$$
+
+\vspace{0.5em}
+\noindent\textbf{Game $\mathbf{G}_5$ (Reject non-DH ciphertexts).} 
+Modify the decapsulation oracle to reject any ciphertext where $(a, \hat{a})$ is not a valid Diffie-Hellman pair, i.e., $\hat{a}\ne a^w$. Then in decryption $b = a^z$ and $d = a^{x+yv}$, where $x=x_1+x_2w, y=y_1+y_2w, z=z_1+z_2w$, and thus the decapsulation oracle no longer requires the individual values $x_1, x_2, y_1, y_2, z_1, z_2$, but only the aggregated values $x, y, z$.
+Let $R_5$ be the event that this rule triggers. Same as $\mathbf{G}_3$,
+$$
+|\Pr[T_5] - \Pr[T_4]| \le \Pr[R_5].
+$$
+Using a linear algebra argument (Lemma 6.6 in the work of Cramer et al. ~\cite{cramer2003design}), one shows:
+$$
+\Pr[R_5] \le \frac{q_D(\lambda)}{q}.
+$$
+
+\vspace{0.5em}
+\noindent\textbf{Game $\mathbf{G}_6$ (Randomize $b$).} 
+Replace the computation of $b$ in encryption with an independently random group element $b \gets G$.
+By the Leftover Hash Lemma,
+$$
+\begin{pmatrix}z \\ \log_g b\end{pmatrix} = \begin{pmatrix}1 & w \\ u & w\hat{u}\end{pmatrix} \cdot \begin{pmatrix}z_1 \\ z_2\end{pmatrix}
+$$
+is uniformly random given the adversary's view, so the distribution of $b=a^{z_1} \hat{a}^{z_2}$ in $\mathbf{G}_5$ is statistically identical to that in $\mathbf{G}_6$. Thus,  
+$$  
+\Pr[T_6] = \Pr[T_5].  
+$$
+
+\vspace{0.5em}
+\noindent\textbf{Game $\mathbf{G}_7$ (Random KDF output).} 
+Replace $K = \text{KDF}(a,b)$ in the challenge with a uniformly random string of the same length. By KDF security, there is a reduction $A_3$ such that:
+$$
+|\Pr[T_7] - \Pr[T_6]| \le \text{Adv}_{\mathrm{KDF}}^{\text{dist}}(A_3).
+$$
+In $\mathbf{G}_7$, the challenge key is independent of the hidden bit $\beta$, so $\Pr[T_7] = 1/2$.
+
+\vspace{0.5em}
+\noindent\textbf{Final bound.} 
+Combining the game transitions gives:
+$$
+\text{Adv}_{\text{CS3},A}^{\text{ind-cca}} \le \text{Adv}_{\mathcal{G}}^{\text{DDH}}(A_1) + \text{Adv}_{\mathrm{HF}}^{\text{TCR}}(A_2) + \text{Adv}_{\mathrm{KDF}}^{\text{dist}}(A_3) + \frac{q_D(\lambda) + 3}{q}.
+$$
+So under the assumptions above, CS3 KEM is IND-CCA secure.
+
+\subsection{The Efficient Variant: CS3b KEM}
+
+In practice, the most efficient version of the Cramer-Shoup KEM is \textbf{CS3b} (Section 9.3 of the article~\cite{cramer2003design}), which simplifies key generation and decapsulation:
+
+\begin{itemize}
+    \item \textbf{KeyGen:} Choose $x_1, x_2, y_1, y_2, z \gets \mathbb{Z}_q$ and set $h = g^z$ (instead of $g^{z_1} \hat{g}^{z_2}$).
+    \item \textbf{Encapsulation:} Unchanged.
+    \item \textbf{Decapsulation:} After verifying $d$, compute $b = a^z$ directly, using the fact that $z = z_1 + w z_2$ can be aggregated.
+\end{itemize}
+
+This reduces decapsulation to three exponentiations (or two with precomputation) and eliminates the need for $\hat{a}$ in the KDF input.
+
+The security proof for CS3b is almost identical to that of CS3, with an additional bound of $q_D / q$ to account for the missing subgroup test. For details, please refer to the Theorem 9.2 in original paper~\cite{cramer2003design}.
+
+\section{Milestone 3: The Fujisaki-Okamoto Transformation and Its Modular Analysis}
+
+While the Cramer-Shoup KEM achieves IND-CCA security under the DDH assumption without random oracles, its design relies on a specific algebraic structure---namely, groups where the DDH problem is hard. This raises a natural question: can an IND-CCA secure KEM be built from \textit{any} IND-CPA secure public-key encryption scheme, even those without such algebraic properties?
+
+The Fujisaki-Okamoto (FO) transformation~\cite{fujisaki1999secure} answers this question affirmatively. It provides a generic, efficient method to convert a weak asymmetric encryption scheme (secure only against passive attacks) into a strong KEM (secure against adaptive chosen ciphertext attacks), in the random oracle model. This transformation has become a cornerstone of modern KEM design, particularly for post-quantum cryptography, where many low-level primitives naturally achieve only IND-CPA security.
+
+\subsection{The Underlying PKE Primitive}
+
+Before presenting the FO transformation, we must define the asymmetric encryption primitive it operates on and the security notions it assumes.
+
+\noindent\textbf{Definition 3.9 Public-Key Encryption Syntax.} A public-key encryption scheme $\text{PKE} = (\text{KeyGen}, \text{Encrypt}, \text{Decrypt})$ consists of three algorithms:
+\begin{itemize}
+    \item $\text{KeyGen}(1^\lambda) \to (pk, sk)$: Generates a public key $pk$ and a secret key $sk$.
+    \item $\text{Encrypt}(pk, m; r) \to c$: Given $pk$, a message $m$, and \textbf{coins} $r$ (randomness), outputs a ciphertext $c$.
+    \item $\text{Decrypt}(sk, c) \to m \text{ or } \bot$: Given $sk$ and a ciphertext $c$, outputs either a message $m$ or a rejection symbol $\bot$.
+\end{itemize}
+
+\noindent\textbf{The Role of Coins.} The term ``coins'' (or ``random coins'') refers to the internal randomness used by a probabilistic encryption algorithm. Since $\text{Encrypt}$ is probabilistic, encrypting the same message twice with the same public key should produce different ciphertexts with overwhelming probability. This randomness is essential for achieving semantic security: without it, an adversary could distinguish encryptions of two messages by comparing ciphertexts.
+
+Formally, let $\mathcal{R}$ denote the \textbf{coin space} of $\text{Encrypt}$. For a given $pk$, message $m$, and coins $r \in \mathcal{R}$, the encryption is deterministic: $c = \text{Encrypt}(pk, m; r)$. When we write $\text{Encrypt}(pk, m)$ without specifying $r$, it is understood that $r$ is sampled uniformly from $\mathcal{R}$.
+
+\noindent\textbf{Definition 3.10 OW-CPA: One-Wayness under Chosen Plaintext Attack.} The weakest standard security notion for PKE is \textbf{one-wayness} under chosen plaintext attack (OW-CPA). Informally, OW-CPA guarantees that an adversary who sees the encryption of a random message cannot recover the entire message. Formally, for an adversary $A$, define the OW-CPA advantage:
+$$
+\text{Adv}_{\text{PKE}}^{\text{ow-cpa}}(A) = \Pr\left[
+m'=\text{Decrypt}(sk,c) : \begin{array}{c}
+(pk, sk) \gets \text{KeyGen}(1^\lambda); \\
+m \gets \mathcal{M}; \\
+c \gets \text{Encrypt}(pk, m); \\
+m' \gets A(pk, c)
+\end{array}
+\right].
+$$
+We say $\text{PKE}$ is \textbf{OW-CPA secure} if for all PPT adversaries $A$, $\text{Adv}_{\text{PKE}}^{\text{ow-cpa}}(A) \le \text{negl}(\lambda)$.
+
+OW-CPA is strictly weaker than IND-CPA. Any deterministic encryption scheme (e.g., textbook RSA) that is one-way is a counterexample: such a scheme can be OW-CPA secure but not IND-CPA secure (since determinism allows distinguishing encryptions of different messages). The FO transformation actually requires OW-CPA as its minimal assumption, though it can also start from IND-CPA with tighter parameters.
+
+\noindent\textbf{Definition 3.11 OW-PCVA: One-Wayness under Plaintext and Validity Checking Attacks.} A stronger notion than OW-CPA is \textbf{one-wayness under plaintext and validity checking attacks} (OW-PCVA). The OW-PCVA game is similar to the OW-CPA game, except that the adversary additionally has access to a \textbf{plaintext checking oracle} $\text{PCO}(m, c)$ and a \textbf{ciphertext validity checking oracle} $\text{CVO}(c)$. Formally, for an adversary $A$, define the OW-PCVA advantage:
+$$
+\text{Adv}_{\text{PKE}}^{\text{ow-pcva}}(A) = \Pr\left[
+\text{PCO}(m', c^*):\begin{array}{c}
+(pk, sk) \gets \text{KeyGen}(1^\lambda); \\
+m^* \gets \mathcal{M}; \\
+c^* \gets \text{Encrypt}(pk, m^*); \\
+m' \gets A^\text{PCO,CVO}(pk, c^*)
+\end{array}
+\right],
+$$
+where
+$$
+\text{PCO}(m\in\mathcal{M}, c)=[\text{Decrypt}(sk, c)=m], \quad \text{CVO}(c\ne c^*)=[\text{Decrypt}(sk, c)\in\mathcal{M}].
+$$
+We say $\text{PKE}$ is \textbf{OW-PCVA secure} if for all PPT adversaries $A$, $\text{Adv}_{\text{PKE}}^{\text{ow-pcva}}(A) \le \text{negl}(\lambda)$.
+Restricting the adversary to PCO/CVO oracles yields the security notions OW-PCA and OW-VA, respectively.
+
+OW-PCVA is strictly stronger than OW-CPA, as the plaintext checking oracle provides additional power to the adversary. We will see in Section 3.3.3 that the FO transformation's $\text{T}$ component lifts OW-CPA to OW-PCVA via derandomization and re-encryption.
+
+\subsection{The Classical Fujisaki-Okamoto Transformation}
+
+The original FO transformation~\cite{fujisaki1999secure} converts a one-way secure (OW-CPA) public-key encryption scheme $\text{PKE}$ into a CCA-secure KEM in the random oracle model. It consists of two hash functions $G$ and $H$ and proceeds as follows.
+
+\noindent\textbf{Definition 3.12 Classical FO KEM.} Let $\text{PKE} = (\text{KeyGen}, \text{Encrypt}, \text{Decrypt})$ be an asymmetric encryption scheme with message space $\mathcal{M}$ and coin space $\mathcal{R}$. Let $G: \mathcal{M} \to \mathcal{R}$ and $H: \mathcal{M} \to \{0,1\}^{\kappa}$ be hash functions, modeled as random oracles. The FO-transformed KEM is defined as follows:
+\begin{itemize}
+    \item \textbf{Key Generation:} Same as $\text{PKE.KeyGen}(1^\lambda) \to (pk, sk)$.
+    \item \textbf{Encapsulation:} On input $pk$:
+    \begin{enumerate}
+        \item Sample a random message $m \gets \mathcal{M}$.
+        \item Compute randomness $r = G(m)$.
+        \item Compute ciphertext $c = \text{Encrypt}(pk, m; r)$.
+        \item Compute symmetric key $K = H(m)$.
+        \item Output $(K, c)$.
+    \end{enumerate}
+    \item \textbf{Decapsulation:} On input $sk$ and ciphertext $c$:
+    \begin{enumerate}
+        \item Compute $m' = \text{Decrypt}(sk, c)$. If $m' = \bot$, output $\bot$.
+        \item Compute $r' = G(m')$.
+        \item If $\text{Encrypt}(pk, m'; r') = c$, output $K = H(m')$; otherwise output $\bot$.
+    \end{enumerate}
+\end{itemize}
+
+\noindent\textbf{Correctness} follows directly from the correctness of $\text{PKE}$: for honestly generated ciphertexts, decryption yields the original $m$, recomputed encryption matches $c$, and $K$ is recovered.
+
+\noindent\textbf{Theorem 3.13 Classical FO Security.} If $\text{PKE}$ is OW-CPA secure and $G, H$ are modeled as random oracles, then the FO KEM is IND-CCA secure.
+
+The essential idea of the proof is that any valid decapsulation query that differs from the challenge ciphertext must involve either a collision in $G$ or $H$, or yield an $m$ that inverts the challenge ciphertext---which would break one-wayness. While the classical FO transformation is conceptually elegant, its security analysis involves non-tight reductions and imposes perfect correctness requirements that are not always satisfied by modern lattice-based schemes, which often have a small but non-zero decryption error probability.
+
+\subsection{The Modular FO Framework}
+
+A major advance came from Hofheinz, Hövelmanns, and Kiltz~\cite{hofheinz2017modular}, who provided a \textbf{modular analysis} of the Fujisaki-Okamoto transformation and its variants. Their work decomposes the transformation into smaller, reusable components, each with a precise security guarantee. This modular approach clarifies the trade-offs between assumptions, efficiency, tightness, and correctness, and has become the standard framework for the application of FO, particularly in the post-quantum setting.
+
+The key insight of Hofheinz et al. is that the FO transformation can be understood as a composition of two simpler transformations: $\text{T}$ and $\text{U}$, each converting a weaker primitive into a stronger one.
+
+\noindent\textbf{Definition 3.14 Transformation $\text{T}$: From OW-CPA to OW-PCVA.} Let PKE = (KeyGen, Encrypt, Decrypt) be a PKE scheme with message space $\mathcal{M}$ and coin space $\mathcal{R}$, and let $G: \mathcal{M} \to \mathcal{R}$ be a hash function. Define $\text{PKE}_1 = \text{T}[\text{PKE}, G]$ as the deterministic encryption scheme with:
+\begin{itemize}
+    \item $\text{KeyGen}_1 = \text{KeyGen}$.
+    \item $\text{Encrypt}_1(pk, m) = \text{Encrypt}(pk, m; G(m))$.
+    \item $\text{Decrypt}_1(sk, c)$: Compute $m = \text{Decrypt}(sk, c)$. If $m \ne \bot \wedge \text{Encrypt}_1(pk, m) = c$, output $m$; otherwise output $\bot$.
+\end{itemize}
+
+The transformation $\text{T}$ derandomizes encryption using $G$ and enforces consistency via re-encryption at decryption time.
+
+\noindent\textbf{Definition 3.15 Transformation $\text{U}$: From OW-PCVA to IND-CCA.} Given a deterministic encryption scheme $\text{PKE}_1$ (or more generally, a scheme with OW-PCVA security), and a hash function $H$, define $\text{KEM} = \text{U}[\text{PKE}_1, H]$. There are four variants of $\text{U}$, differing in how the key $K$ is derived and how invalid ciphertexts are rejected:
+
+\begin{table}[htbp]
+    \centering
+    \caption{Four variants of the transformation $\text{U}$.}
+    \label{tab:transformation-U-variants}
+    \begin{tabular}{c c c c}
+        \toprule
+        \textbf{Variant} & \textbf{Key Derivation} & \textbf{Rejection Type} & \textbf{Assumption Required} \\
+        \midrule
+        $\text{U}^{\not\bot}$ & $K = H(m, c)$ & Implicit (output $H(c, s)$ for random $s$) & OW-PCA \\
+        $\text{U}^{\bot}$ & $K = H(m, c)$ & Explicit (output $\bot$ on failure) & OW-PCVA \\
+        $\text{U}_m^{\not\bot}$ & $K = H(m)$ & Implicit & det. OW-CPA \\
+        $\text{U}_m^{\bot}$ & $K = H(m)$ & Explicit & det. OW-VA \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+
+All variants share the same encapsulation: using the sample random $m$ and compute $c = \text{Encrypt}_1(pk, m)$, output $(H(m, c), c)$ (or $(H(m), c)$ for the $\text{U}_m$ variants). Decapsulation differs in how rejection is handled.
+
+The full FO transformation is obtained by composing $\text{T}$ and $\text{U}$, like:
+$$
+\text{FO}^{\not\bot}[\text{PKE}, G, H] = \text{U}^{\not\bot}[\text{T}[\text{PKE}, G], H].
+$$
+
+\subsection{Security Analysis}
+
+\noindent\textbf{Theorem 3.16 Security of $\text{T}$.} If $\text{PKE}$ is $\delta$-correct and OW-CPA secure, and $G$ is a random oracle, then $\text{PKE}_1$ is OW-PCA secure and $\delta_1$-correct. Specifically, for any OW-PCA adversary $B$ against $\text{PKE}_1$ making at most $q_G$ queries to $G$, there exists an OW-CPA adversary $A$ against $\text{PKE}$ such that:
+$$
+\text{Adv}_{\text{PKE}_1}^{\text{ow-pca}}(B) \le q_G \cdot \delta + (q_G + 1) \cdot \text{Adv}_{\text{PKE}}^{\text{ow-cpa}}(A).
+$$
+with $\delta_1=q_G \cdot \delta$-correctness.
+
+\noindent\textit{Proof Sketch.} The reduction works by simulating the plaintext checking oracle via re-encryption using the random oracle $G$, and leveraging the OW-CPA security of $\text{PKE}$ to handle the challenge ciphertext. The correctness error $\delta$ accounts for the possibility that decryption may fail even for honestly generated ciphertexts---a crucial feature for lattice-based PKE schemes.
+
+\noindent\textbf{Theorem 3.17 Security of $\text{U}^{\bot}$.} If $\text{PKE}_1$ is OW-PCVA secure and $\delta_1$-correct, and $H$ is a random oracle, then $\text{KEM} = \text{U}^{\bot}[\text{PKE}_1, H]$ is IND-CCA secure and $\delta_1$-correct. Specifically, for any IND-CCA adversary $B$ against $\text{KEM}$ making at most $q_D$ decapsulation queries and $q_H$ queries to $H$, there exists an OW-PCVA adversary $A$ against $\text{PKE}_1$ such that:
+$$
+\text{Adv}_{\text{KEM}}^{\text{ind-cca}}(B) \le \text{Adv}_{\text{PKE}_1}^{\text{ow-pcva}}(A).
+$$
+
+\noindent\textit{Proof Sketch.} The decapsulation oracle can be simulated without the secret key by using the plaintext checking oracle and ciphertext validity oracle provided by the OW-PCVA game. The simulation is perfect and straight-line, yielding a tight reduction.
+
+The security proofs for $\text{U}^{\not\bot}$, $\text{U}_m^{\bot}$, and $\text{U}_m^{\not\bot}$ follow similar patterns, with trade-offs between tightness and the strength of required assumptions. The $\text{U}_m^{\not\bot}$ variant (implicit rejection, key derived from $m$ only) is particularly important for practice, as it can be instantiated from the weaker OW-CPA assumption after applying $\text{T}$, and gracefully handles decryption errors.
+
+Combined the security of $\text{T}$ and $\text{U}$, we can get the security of KEM.
+
+\noindent\textbf{Theorem 3.18 Composition Theorem.} If $\text{PKE}$ is OW-CPA secure with $\delta$-correctness, and $G, H$ are random oracles, then $\text{KEM}^{\not\bot}=\text{FO}^{\not\bot}[\text{PKE}, G, H]$ is IND-CCA secure. Specifically, for any IND-CCA adversary $B$ against $\text{KEM}^{\not\bot}$ making at most $q_G$ queries to $G$ and $q_H$ queries to $H$, there exists an OW-CPA adversary $A$ against $\text{PKE}$ such that:
+$$
+\text{Adv}_{\text{KEM}^{\not\bot}}^{\text{ind-cca}}(B) \le 2q_{RO}\cdot\text{Adv}_{\text{PKE}}^{\text{ow-cpa}}(A) + \frac{2q_{RO}}{|\mathcal{M}|} + q_{RO} \cdot \delta,
+$$
+where $q_{RO} = q_G + q_H$.
+
+This bound is non-tight (loses a factor of $q_{RO}$), but the modular approach clarifies exactly where the loss occurs and how parameters should be chosen to maintain security.
+
+\subsection{The Quantum FO Transformation}
+
+With the advent of quantum computing, cryptographers must also consider adversaries equipped with quantum computers that can query random oracles in superposition. This scenario is captured by the \textbf{Quantum Random Oracle Model (QROM)}.
+
+Targhi and Unruh~\cite{targhi2016post} proved that a modified version of the FO transformation remains secure in the QROM. Their construction, which we denote $\text{QFO}_m^{\bot}$, adds an additional hash value to the ciphertext:
+
+\noindent\textbf{Definition 3.19 Quantum-Safe FO, $\text{QFO}_m^{\bot}$.} Let $\text{PKE}$ be an OW-CPA secure PKE, and let $G, H, H'$ be hash functions. The QFO-transformed KEM is:
+\begin{itemize}
+    \item \textbf{Encapsulation:} Sample random $m$, compute $r = G(m)$, $c = \text{Encrypt}(pk, m; r)$, $d = H'(m)$, output $K = H(m)$ and ciphertext $\psi = (c, d)$.
+    \item \textbf{Decapsulation:} Decrypt $c$ to obtain $m'$. If $m' = \bot$ or $H'(m') \neq d$, output $\bot$; otherwise output $K = H(m')$.
+\end{itemize}
+
+The additional hash $d$ serves as a ``confirmation'' that prevents certain quantum superposition attacks. Security in the QROM requires sub-exponential hardness assumptions (e.g., LWE with super-polynomial modulus-to-noise ratio) because the security reductions lose a factor exponential in the number of rewinding steps needed for extraction.
+
+\noindent\textbf{Theorem 3.20 QFO Security~\cite{hofheinz2017modular}.} If $\text{PKE}$ is OW-CPA secure with $\delta$-correctness under sub-exponential hardness assumptions, then $\text{QFO}_m^{\bot}[\text{PKE}, G, H, H']$ is IND-CCA secure in the QROM. The concrete security bound is:
+$$
+\text{Adv}_{\text{QFO}^\perp_m}^{\text{ind-cca}}(B) \le 8q_{RO} \cdot \sqrt{\delta \cdot q_{RO}^2 + q_{RO} \cdot \sqrt{\text{Adv}_{\text{PKE}}^{\text{ow-cpa}}(A)}}.
+$$
+where $q_{RO}=q_G+q_H+q_{H'}$.
+
+The quadratic loss arises from the use of the one-way to hiding (OW2H) lemma, which is used to bound the advantage of an adversary that makes quantum superposition queries to the random oracle. The OW2H lemma introduces a square-root factor because quantum adversaries can test multiple candidates simultaneously, requiring the reduction to ``guess'' which query was critical. This is analogous to the square-root speedup offered by Grover's algorithm, and the quadratic loss reflects the intrinsic difficulty of proving security against quantum adversaries generically.
+
+\section{Milestone 4: Kyber/ML-KEM and Post-Quantum Standardization}
+
+With the threat of quantum computers looming and the FO transformation providing a generic method to achieve CCA security, the cryptographic community has been actively standardizing post-quantum cryptographic algorithms. Among these, the Module-Lattice-Based Key-Encapsulation Mechanism (ML-KEM), formerly known as CRYSTALS-Kyber, has emerged as the primary KEM standard~\cite{nist2024fips203}. Its design exemplifies the principles we have developed throughout this paper: the KEM abstraction, FO transformation, and careful engineering of correctness and security.
+
+\subsection{The Underlying Module-LWE Problem}
+
+ML-KEM is based on the \textbf{Module Learning with Errors (Module-LWE)} problem, a generalization of Ring-LWE that offers a favorable trade-off between security and efficiency. Unlike Ring-LWE, which operates over a single polynomial ring and can be vulnerable to certain attacks when the ring has special structure, Module-LWE operates over a module of small rank $k$ (e.g., $k=2,3,4$), balancing security and performance.
+
+\noindent\textbf{Definition 3.21 Module-LWE.} Let $R_q = \mathbb{Z}_q[X]/(X^n + 1)$ be a cyclotomic ring with $n = 256$, ${R}_q^k$ the set of $k$-dimensional vectors over $R_q$, and $\chi$ a distribution over $R_q$ producing small-norm elements (typically centered binomial). For a secret vector $\boldsymbol{s} \in {R}_q^k$, the Module-LWE distribution $\mathcal{A}_{\boldsymbol{s},\chi}$ outputs samples $(\boldsymbol{a}, \boldsymbol{a}^\top \boldsymbol{s} + e)$ where $\boldsymbol{a} \gets {R}_q^k$ uniformly and $e \gets \chi$. The search Module-LWE problem asks to recover $\boldsymbol{s}$ from such samples; the decision version asks to distinguish $\mathcal{A}_{\boldsymbol{s},\chi}$ from uniform.
+
+ML-KEM uses parameters $n = 256$, $k \in \{2, 3, 4\}$ (security levels 1, 3, 5 respectively), and modulus $q = 3329$. These parameters are chosen to balance security (against both classical and quantum attacks) with performance while minimizing decryption error probability to approximately $2^{-140}$.
+
+\noindent\textbf{Why Module-LWE?} The module structure offers a ``sweet spot'' in the lattice hierarchy. Standard LWE with large dimension is secure but inefficient; Ring-LWE is efficient but its algebraic structure may enable certain attacks (e.g., exploiting the ring's automorphisms). Module-LWE with small rank $k$ (e.g., $k=2,3,4$) inherits the efficiency of Ring-LWE while diluting the algebraic structure, providing a conservative security margin. This parameterization allows ML-KEM to achieve a compact public key size (e.g., 800 bytes for $k=2$) and fast operations while maintaining strong security guarantees.
+
+\subsection{The CPA-Secure Base PKE: Primal Regev}
+
+The Kyber CPA-secure PKE (the base scheme) is a standard Module-LWE encryption scheme. Let $\chi$ be a centered binomial distribution (specifically, $\eta_1, \eta_2$ parameters for different noise levels). The scheme proceeds as follows:
+
+\begin{itemize}
+    \item \textbf{KeyGen:} Sample $\boldsymbol{A} \gets {R}_q^{k \times k}$ uniformly, $\boldsymbol{s} \gets \chi^k$, $\boldsymbol{e} \gets \chi^k$, compute $\boldsymbol{t} = \boldsymbol{A}\boldsymbol{s} + \boldsymbol{e}$. Output $pk = (\boldsymbol{A}, \boldsymbol{t})$, $sk = \boldsymbol{s}$.
+    \item \textbf{Encrypt:} Sample $\boldsymbol{r} \gets \chi^k$, $\boldsymbol{e}_1 \gets \chi^k$, $e_2 \gets \chi$, compute $\boldsymbol{u} = \boldsymbol{A}^\top \boldsymbol{r} + \boldsymbol{e}_1$, $v = \boldsymbol{t}^\top \boldsymbol{r} + e_2 + \lfloor q/2 \rceil \cdot m$. Output $c = (\boldsymbol{u}, v)$.
+    \item \textbf{Decrypt:} Compute $w = v - \boldsymbol{s}^\top \boldsymbol{u}$. If $w$ is closer to $\lfloor q/2 \rceil$ than to $0$ modulo $q$, output $1$; else output $0$.
+\end{itemize}
+
+\noindent\textbf{Correctness Analysis.} For an honestly generated ciphertext, we have:
+$$
+\begin{aligned}
+w &= v - \boldsymbol{s}^\top \boldsymbol{u} \\
+&= (\boldsymbol{t}^\top \boldsymbol{r} + e_2 + \lfloor q/2 \rceil \cdot m) - \boldsymbol{s}^\top (\boldsymbol{A}^\top \boldsymbol{r} + \boldsymbol{e}_1) \\
+&= (\boldsymbol{t}^\top \boldsymbol{r} - \boldsymbol{s}^\top \boldsymbol{A}^\top \boldsymbol{r}) + (e_2 - \boldsymbol{s}^\top \boldsymbol{e}_1) + \lfloor q/2 \rceil \cdot m.
+\end{aligned}
+$$
+
+Since $\boldsymbol{t} = \boldsymbol{A}\boldsymbol{s} + \boldsymbol{e}$, we have $\boldsymbol{t}^\top = \boldsymbol{s}^\top \boldsymbol{A}^\top + \boldsymbol{e}^\top$. Substituting:
+$$
+\boldsymbol{t}^\top \boldsymbol{r} - \boldsymbol{s}^\top \boldsymbol{A}^\top \boldsymbol{r} = (\boldsymbol{s}^\top \boldsymbol{A}^\top + \boldsymbol{e}^\top)\boldsymbol{r} - \boldsymbol{s}^\top \boldsymbol{A}^\top \boldsymbol{r} = \boldsymbol{e}^\top \boldsymbol{r}.
+$$
+
+Therefore:
+$$
+w = \boldsymbol{e}^\top \boldsymbol{r} + e_2 - \boldsymbol{s}^\top \boldsymbol{e}_1 + \lfloor q/2 \rceil \cdot m.
+$$
+
+All noise terms $\boldsymbol{e}^\top \boldsymbol{r}$, $e_2$, and $\boldsymbol{s}^\top \boldsymbol{e}_1$ are small (bounded by some $B \ll q/4$ with overwhelming probability). Thus $w$ is close to $\lfloor q/2 \rceil \cdot m$. The decryption correctly outputs $m$ when $|w - \lfloor q/2 \rceil \cdot m| < q/4$, which holds except with probability $\delta \approx 2^{-140}$ for the chosen parameters.
+
+\subsection{The FO Transformation Applied to Kyber}
+
+This base scheme achieves only IND-CPA security. To obtain IND-CCA security, ML-KEM applies the $\text{FO}_m^{\not\bot}$ transformation (implicit rejection, key from $m$ only), which we denote as \textbf{Kyber.CCAKEM}:
+
+\begin{itemize}
+    \item \textbf{Key Generation:} Same as Kyber.CPA.KeyGen.
+    \item \textbf{Encapsulation:} On input $pk$:
+    \begin{enumerate}
+        \item Sample a random message $m \gets \{0,1\}^{256}$.
+        \item Compute $(\boldsymbol{u}, v) = \text{Kyber.CPA.Encrypt}(pk, m; G(m))$, where $G$ is a hash function (SHAKE-256 in practice, with domain separation).
+        \item Compute shared secret $K = H(m)$.
+        \item Output $(K, (\boldsymbol{u}, v))$.
+    \end{enumerate}
+    \item \textbf{Decapsulation:} On input $sk$ and the ciphertext $c = (\boldsymbol{u}, v)$:
+    \begin{enumerate}
+        \item Decrypt to obtain $m' = \text{Kyber.CPA.Decrypt}(sk, (\boldsymbol{u}, v))$.
+        \item If $m' = \bot$, output $\bot$.
+        \item Compute $(\boldsymbol{u}', v') = \text{Kyber.CPA.Encrypt}(pk, m'; G(m'))$.
+        \item If $(\boldsymbol{u}', v') = (\boldsymbol{u}, v)$, output $K = H(m')$; otherwise output $\bot$.
+    \end{enumerate}
+\end{itemize}
+
+The actual ML-KEM specification (FIPS 203) uses a slightly different design with \textbf{key derivation functions} for domain separation and includes an additional ``key confirmation'' hash to prevent certain fault attacks. It also employs a \textbf{key pair validation} step during decapsulation to reject malformed ciphertexts.
+
+\subsection{Security Analysis}
+
+The security of ML-KEM follows from the hardness of Module-LWE and the security of the FO transformation in the ROM. By the modular analysis of Hofheinz et al.~\cite{hofheinz2017modular}, we have:
+
+$$
+\text{Adv}_{\text{ML-KEM}}^{\text{ind-cca}}(B) \le 3 \cdot \text{Adv}_{\text{MLWE}}^{\text{mlwe}}(A) + \frac{3q_G + 3q_H}{2^{256}} + (2q_G + 2q_H + q_D) \cdot \delta,
+$$
+
+where $\delta \approx 2^{-140}$ is the decryption error probability, $q_D,q_G, q_H$ are numbers of decapsulation queries and hash queries (bounded by, say, $2^{64}$ in practice), and $A$ is an adversary against Module-LWE with comparable running time. The term $(2q_G + 2q_H + q_D) \cdot \delta$ remains negligible (e.g., $5 \cdot 2^{64} \cdot 2^{-140} < 2^{-73}$), so the dominant term is the Module-LWE advantage.
+
+The NIST security analysis concluded that with appropriate parameter choices (e.g., $k=3$, $n=256$, $q=3329$ for security level 3), ML-KEM provides 128 bits of security against both classical and quantum adversaries. The IND-CCA security bound ensures that even active attackers who can inject chosen ciphertexts cannot recover the shared secret or distinguish it from random.
+
+\subsection{Efficiency Trade-offs and Parameter Selection}
+
+ML-KEM offers three security levels corresponding to $k = 2, 3, 4$, showing in Table~\ref{tab:ml-kem-security-levels}:
+
+\begin{table}[htbp]
+    \centering
+    \caption{ML-KEM standard security levels and corresponding parameter sizes}
+    \label{tab:ml-kem-security-levels}
+    \begin{tabular}{c c c c c}
+        \hline
+        \textbf{Level} & $\boldsymbol{k}$ & \textbf{Public Key Size} & \textbf{Ciphertext Size} & \textbf{Security (bits)} \\
+        \hline
+        1 & 2 & 800 bytes  & 768 bytes  & 128 \\
+        \hline
+        3 & 3 & 1184 bytes & 1088 bytes & 192 \\
+        \hline
+        5 & 4 & 1568 bytes & 1568 bytes & 256 \\
+        \hline
+    \end{tabular}
+\end{table}
+
+The choice of $q = 3329$ (a prime of the form $3329 = 256 \cdot 13 + 1$) enables efficient Number Theoretic Transform (NTT) operations, which reduce multiplication complexity from $O(n^2)$ to $O(n \log n)$. The polynomial degree $n = 256$ ensures that NTT operations fit within modern CPU cache hierarchies, enabling fast constant-time implementations.
+
+\subsection{Comparison with Other NIST KEM Finalists}
+
+While ML-KEM was selected as the primary KEM standard, NIST also considered other candidates that illustrate different design philosophies:
+
+\begin{itemize}
+    \item \textbf{Classic McEliece}~\cite{bernstein2017classic}: A code-based KEM with 50+ years of cryptanalysis. It offers extremely fast encryption and decryption but produces very large public keys (hundreds of kilobytes to megabytes). Unlike ML-KEM, Classic McEliece does not use the FO transformation in the standard way; instead, it uses a variant of the Niederreiter framework with a different approach to achieving CCA security.
+
+    \item \textbf{BIKE}~\cite{aragon2022bike}: A code-based KEM using QC-MDPC codes. It offers smaller key sizes than Classic McEliece but has a non-zero decryption failure rate that requires careful handling in the FO transformation. The security analysis of BIKE is less mature than that of ML-KEM, and its implementation requires constant-time decoding algorithms to avoid side-channel attacks.
+
+    \item \textbf{HQC}~\cite{melchor2018hamming}: Another code-based KEM with a provably low decryption error rate. It provides strong security guarantees but is less efficient than ML-KEM.
+\end{itemize}
+
+The selection of ML-KEM as the primary standard reflects a judgment that lattice-based cryptography offers the best balance of security, performance, and implementation simplicity for general-purpose use.

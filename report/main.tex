@@ -1,0 +1,38 @@
+\documentclass[lang=en]{sjtureport}
+
+\input{setup/package}
+\usepackage[backend=biber,style=gb7714-2015]{biblatex}
+\addbibresource{ref.bib}
+
+\begin{document}
+\begin{sloppypar}
+\input{setup/titlepage}
+
+\pagenumbering{Roman}
+% 摘要
+\input{abstract}
+
+% 目录
+\tableofcontents
+
+% 正文
+\newpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+\input{content/ch1}
+\input{content/ch2}
+\input{content/ch3}
+\input{content/ch4}
+\input{content/ch5}
+\input{content/ch6}
+\input{content/ch7}
+
+% 参考文献
+\printbibliography[heading=bibintoc, title={References}]
+
+\appendix
+\input{appendix/symbol}
+\input{appendix/contribution}
+
+\end{sloppypar}
+\end{document}

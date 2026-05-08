@@ -1,0 +1,7 @@
+\chapter*{Abstract}
+\vspace{1em}
+
+This paper examines the Key Encapsulation Mechanism (KEM) as the foundational key-establishment primitive for modern and post-quantum cryptographic protocols. We trace the theoretical evolution of KEM through key milestones: Shoup's KEM/DEM composition, the Cramer-Shoup paradigm establishing IND-CCA security as the baseline, and the Fujisaki-Okamoto (FO) transformation that generically lifts CPA-secure schemes to CCA security. Furthermore, we bridge theory and practice by presenting jkem, a teaching-oriented Rust implementation of the newly standardized ML-KEM (FIPS 203). Through empirical benchmarks and constant-time evaluations, we illustrate the engineering intricacies of module-lattice operations and implicit rejection mechanisms. Finally, we analyze the deployment of KEMs in real-world protocols like HPKE and hybrid TLS 1.3, highlighting that while the KEM abstraction provides a clean modular boundary, robust secure channels require careful integration with transcript binding, authentication, and downgrade protection.\par
+
+\vspace{1em}
+\noindent\textbf{Keywords: }Key Encapsulation Mechanism (KEM), Post-Quantum Cryptography (PQC), Fujisaki-Okamoto Transformation, ML-KEM, Hybrid Key Exchange

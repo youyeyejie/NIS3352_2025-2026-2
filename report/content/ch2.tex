@@ -1,0 +1,88 @@
+\chapter{Preliminaries}
+\begin{center}
+\large \textbf{KEM/DEM Definition and IND-CCA Security}
+\end{center}
+\vspace{1em}
+
+This section establishes the formal foundations for the remainder of the paper. We define the syntax and security notions for Key Encapsulation Mechanisms (KEMs) and Data Encapsulation Mechanisms (DEMs). These primitives form the building blocks of hybrid public-key encryption.
+
+\section{Key Encapsulation Mechanism (KEM)}
+
+A Key Encapsulation Mechanism abstracts the asymmetric part of a hybrid encryption scheme. Unlike a full public-key encryption scheme that encrypts arbitrary messages, a KEM is designed to encapsulate a random symmetric key.
+
+\noindent\textbf{Definition 2.1 KEM Syntax.} A Key Encapsulation Mechanism KEM = (KeyGen, Encaps, Decaps) consists of three probabilistic polynomial-time algorithms:
+\begin{itemize}
+    \item \textbf{Key Generation:} $\text{KeyGen}(1^\lambda) \to (pk, sk)$. Given a security parameter $\lambda$ (in unary), outputs a public encapsulation key $pk$ and a secret decapsulation key $sk$. The key pair may also include public parameters.
+    \item \textbf{Encapsulation:} $\text{Encaps}(pk) \to (K, \psi)$. Given the public key $pk$, outputs a symmetric key $K \in \{0,1\}^{\kappa(\lambda)}$ (where $\kappa(\lambda)$ is the key length) and a ciphertext $\psi$ (a bit string).
+    \item \textbf{Decapsulation:} $\text{Decaps}(sk, \psi) \to K \text{ or } \bot$. Given the secret key $sk$ and a ciphertext $\psi$, outputs either a symmetric key $K$ or a distinguished rejection symbol $\bot$ indicating that $\psi$ is invalid.
+\end{itemize}
+
+\noindent\textbf{Correctness.} For all $\lambda \in \mathbb{N}$, all $(pk, sk) \gets \text{KeyGen}(1^\lambda)$, and all $(K, \psi) \gets \text{Encaps}(pk)$, we require: 
+$$
+\Pr[\text{Decaps}(sk, \psi) = K] \ge 1 - \delta,
+$$
+where $\delta = \text{negl}(\lambda)$. We also call this $\text{KEM}$ to be $\delta$-correct.
+
+\textit{Note:} In classical KEM constructions (e.g., RSA-KEM, ElGamal-KEM), correctness is typically deterministic and holds with probability $1$. However, in many post-quantum KEMs—particularly lattice-based constructions like ML-KEM, the correctness guarantee is probabilistic due to compression, noise, or decoding errors.
+
+\section{Data Encapsulation Mechanism (DEM)}
+
+A Data Encapsulation Mechanism captures the symmetric-key part of hybrid encryption. It is essentially a symmetric encryption scheme designed for one-time use with a random key.
+
+
+\noindent\textbf{Definition 2.2 DEM Syntax.} A Data Encapsulation Mechanism DEM = (Encrypt, Decrypt) consists of two deterministic polynomial-time algorithms:
+\begin{itemize}
+    \item \textbf{Encryption:} $\text{Encrypt}(K, m) \to \chi$. Given a symmetric key $K \in \{0,1\}^{\kappa(\lambda)}$ and a message $m \in \{0,1\}^*$, outputs a ciphertext $\chi$.
+    \item \textbf{Decryption:} $\text{Decrypt}(K, \chi) \to m \text{ or } \bot$. Given a symmetric key $K$ and a ciphertext $\chi$, outputs either a message $m$ or a rejection symbol $\bot$.
+\end{itemize}
+
+\noindent\textbf{Correctness.} For all $\lambda$, all keys $K \in \{0,1\}^{\kappa(\lambda)}$, and all messages $m$:
+$$
+\text{Decrypt}(K, \text{Encrypt}(K, m)) = m.
+$$
+
+Unlike KEMs, DEMs are typically deterministic and perfectly correct. In practice, a DEM is often built from an authenticated encryption scheme (e.g., AES-GCM) or from a composition of a symmetric encryption scheme and a message authentication code (MAC), as in the $\text{DEM1}$ construction proposed by Shoup~\cite{shoup2001proposal}.
+
+\section{IND-CCA Security for KEM}
+
+We recall the standard indistinguishability under adaptive chosen ciphertext attack (IND-CCA) security notion for KEMs~\cite{shoup2001proposal}. Here ``adaptive CCA'' means that the adversary may continue making decapsulation queries even after receiving the challenge ciphertext, subject only to the restriction that it cannot query the exact challenge ciphertext itself.
+
+\noindent\textbf{Definition 2.3 KEM IND-CCA Game.} Let $\text{KEM} = (\text{KeyGen}, \text{Encaps}, \text{Decaps})$ be a KEM. For an adversary $A$, the IND-CCA experiment $\text{Exp}_{\text{KEM},A}^{\text{ind-cca}}(1^\lambda)$ proceeds as follows:
+\begin{enumerate}
+    \item \textbf{Setup:} Compute $(pk, sk) \gets \text{KeyGen}(1^\lambda)$. Give $pk$ to $A$.
+    \item \textbf{Pre-Challenge Decryption Queries:} $A$ may query a decapsulation oracle $\text{Decaps}(sk, \cdot)$ on arbitrary ciphertexts $\psi$. The oracle returns $\text{Decaps}(sk, \psi)$ (which may be $\bot$).
+    \item \textbf{Challenge:} $A$ signals it is ready. The challenger computes:
+    \begin{itemize}
+        \item $(K_0, \psi^*) \gets \text{Encaps}(pk)$
+        \item $K_1 \gets \{0,1\}^{\kappa(\lambda)}$ uniformly at random
+        \item Choose $b \gets \{0,1\}$ uniformly
+    \end{itemize}
+    Give $(\psi^*, K_b)$ to $A$.
+    \item \textbf{Post-Challenge Decryption Queries:} $A$ may continue to query $\text{Decaps}(sk, \cdot)$, subject to the restriction that $\psi \neq \psi^*$.
+    \item \textbf{Output:} $A$ outputs a guess $b' \in \{0,1\}$. The experiment outputs $1$ if $b' = b$, and $0$ otherwise.
+\end{enumerate}
+
+\noindent\textbf{Definition 2.4 KEM IND-CCA Advantage.} The advantage of $A$ against $\text{KEM}$ is:
+$$
+\text{Adv}_{\text{KEM}}^{\text{ind-cca}}(A) = \left|\Pr[\text{Exp}_{\text{KEM},A}^{\text{ind-cca}} = 1] - \frac{1}{2}\right|.
+$$
+We say $\text{KEM}$ is \textbf{IND-CCA secure} if for all probabilistic polynomial-time adversaries $A$, $\text{Adv}_{\text{KEM}}^{\text{ind-cca}}(A) \le \text{negl}(\lambda)$.
+
+\section{IND-CCA Security for DEM}
+
+For DEMs, we require a notion of IND-CCA security that captures the one-time use of the symmetric key in hybrid encryption. This notion is essentially the standard IND-CCA for symmetric encryption, but without encryption queries (since the key is used only once).
+
+\noindent\textbf{Definition 2.5 DEM IND-CCA Game.} Let $\text{DEM} = (\text{Encrypt}, \text{Decrypt})$ be a DEM with key length $\kappa(\lambda)$. For an adversary $B$, the experiment $\text{Exp}_{\text{DEM},B}^{\text{ind-cca}}(1^\lambda)$ proceeds as follows:
+\begin{enumerate}
+    \item \textbf{Key Generation:} Choose $K \gets \{0,1\}^{\kappa(\lambda)}$ uniformly at random.
+    \item \textbf{Find Phase:} $B$ outputs two messages $m_0, m_1 \in \{0,1\}^*$ of equal length.
+    \item \textbf{Challenge:} Choose $b \gets \{0,1\}$ uniformly. Compute $\chi^* \gets \text{Encrypt}(K, m_b)$. Give $\chi^*$ to $B$.
+    \item \textbf{Decryption Queries:} $B$ may query a decryption oracle $\text{Decrypt}(K, \cdot)$ on arbitrary ciphertexts $\chi \neq \chi^*$. The oracle returns $\text{Decrypt}(K, \chi)$ (which may be $\bot$).
+    \item \textbf{Output:} $B$ outputs a guess $b' \in \{0,1\}$. The experiment outputs $1$ if $b' = b$, and $0$ otherwise.
+\end{enumerate}
+
+\noindent\textbf{Definition 2.6 DEM IND-CCA Advantage.} The advantage of $B$ against $\text{DEM}$ is:
+$$
+\text{Adv}_{\text{DEM}}^{\text{ind-cca}}(B) = \left|\Pr[\text{Exp}_{\text{DEM},B}^{\text{ind-cca}} = 1] - \frac{1}{2}\right|.
+$$
+We say $\text{DEM}$ is \textbf{IND-CCA secure} if for all probabilistic polynomial-time adversaries $B$, $\text{Adv}_{\text{DEM}}^{\text{ind-cca}}(B) \le \text{negl}(\lambda)$.
